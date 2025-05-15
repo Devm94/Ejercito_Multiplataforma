@@ -1,0 +1,132 @@
+{% extends '../core/base.html' %}
+{% load static %}
+{% block 'contenido' %}
+  <title>Monitoreo Electoral</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <section class="content pt-3">
+      <div class="container-fluid">
+
+        <!-- Primera fila: 3 gráficos pastel -->
+        <div class="row">
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Centro de Acopio Departamental</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="chart1"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Centro de Acopio Municipal</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="chart2"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Centros de Votacion</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="chart3"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Segunda fila: Tabla de 18 departamentos -->
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Traslado del CNE al Centro de Acopio Departamental</h3>
+              </div>
+              <div class="card-body table-responsive p-0">
+                <table class="table table-hover text-nowrap">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Departamento</th>
+                      <th>Estado de Llegada</th>
+                      <th>Hora de Salida</th>
+                      <th>Hora de llegada</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Puedes dinamizar esta parte desde el backend -->
+                    <tr><td>1</td><td>Atlántida</td><td><span class="badge badge-success">Recibido</span></td><td>0800hrs</td><td>1600hrs</td></tr>
+                    <tr><td>2</td><td>Colón</td><td><span class="badge badge-warning">En Camino</span></td><td>0800hrs</td><td>Pendiente</td></tr>
+                    <tr><td>3</td><td>Comayagua</td><td><span class="badge badge-danger">Pendiente</span></td><td>Pendiente</td><td>Pendiente</td></tr>
+                    <!-- ... hasta los 18 departamentos -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+<script>
+  const chartConfig = (ctx, label) => new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Recibido', 'En Camino', 'Pendiente'],
+      datasets: [{
+        data: [10, 5, 3],
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+    const chartConfig1 = (ctx, label) => new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Recibido', 'Pendiente'],
+      datasets: [{
+        data: [200, 98],
+        backgroundColor: ['#28a745', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  const chartConfig2 = (ctx, label) => new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Recibido', 'Pendiente'],
+      datasets: [{
+        data: [4000, 517],
+        backgroundColor: ['#28a745', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  window.onload = () => {
+    chartConfig(document.getElementById('chart1'), 'Estado A');
+    chartConfig1(document.getElementById('chart2'), 'Estado B');
+    chartConfig2(document.getElementById('chart3'), 'Estado C');
+  };
+</script>
+{% endblock %}

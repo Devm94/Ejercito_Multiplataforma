@@ -1,0 +1,173 @@
+{% extends '../core/base.html' %}
+{% load static %}
+{% block 'contenido' %}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css'%}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css'%}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css'%}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.6.5/ol.js"></script>
+  <style>
+      #map { width: 100%; height: 500px; }
+  </style>
+  
+  
+  <style>
+    /* Style the container to limit its size */
+    .dataTables_filter {
+            float: right;
+    }
+    .dt-buttons {
+            float :left;
+     }
+
+     .btn_add_req{
+            float :right;
+     }
+    
+    .small-table {
+    font-size: 0.875em; /* Reducir el tamaño de la fuente */
+    }
+
+    .compact-table td, 
+    .compact-table th {
+      padding: 0.3rem; /* Reducir el padding */
+    }
+    body.fullscreen #map {
+      height: 100%; /* Altura completa para pantalla completa */
+    }
+  </style>
+  <section class="content-header">
+</section>
+<section class="content">
+  {% csrf_token %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Mapa de </h3>
+            <div class="card-tools">
+              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
+                <i class="fas fa-minus"></i>
+              </button>
+              <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body" >
+            <div id="map" style="width: 100%; height: 500px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- jQuery -->
+<script src="../../static/lib/adminlte/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="../../static/lib/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- DataTables  & Plugins -->
+<script src="../../static/lib/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/jszip/jszip.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script>
+  var map = new ol.Map({
+    target: 'map',
+    layers: [
+        new ol.layer.Tile({ source: new ol.source.OSM() })
+    ],
+    view: new ol.View({
+        center: ol.proj.fromLonLat([-86.2419, 14.0818]), // Coordenadas de referencia
+        zoom: 6
+    })
+});
+
+let deviceData = {}; // Guardará los datos de los dispositivos por ID
+let vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
+map.addLayer(vectorLayer);
+
+// 📌 Función para obtener el icono según la categoría
+function getIcon(category) {
+    let icons = {
+        "car": "https://cdn-icons-png.flaticon.com/64/743/743131.png",
+        "bus": "https://cdn-icons-png.flaticon.com/64/2285/2285736.png",
+        "motorcycle": "https://cdn-icons-png.flaticon.com/64/3120/3120389.png",
+        "truck": "https://cdn-icons-png.flaticon.com/64/3120/3120381.png",
+        "boat": "https://cdn-icons-png.flaticon.com/64/741/741407.png",
+        "default": "https://cdn-icons-png.flaticon.com/64/847/847969.png" // Icono genérico
+    };
+    return icons[category] || icons["default"];
+}
+
+// 📌 Obtener los dispositivos y sus categorías
+function obtenerDispositivos() {
+    fetch('http://172.21.4.13:8082/api/devices', {
+        headers: { 'Authorization': 'Basic ' + btoa('ejercito@ffaa.mil.hn:Ejercito2021*') }
+    })
+    .then(response => response.json())
+    .then(data => {
+        data.forEach(device => {
+            deviceData[device.id] = {
+                name: device.name,
+                category: device.category || "default"
+            };
+        });
+        cargarPosiciones();
+    })
+    .catch(error => console.error('Error obteniendo dispositivos:', error));
+}
+
+// 📌 Obtener posiciones y mostrar en el mapa
+function cargarPosiciones() {
+    fetch('http://172.21.4.13:8082/api/positions', {
+        headers: { 'Authorization': 'Basic ' + btoa('ejercito@ffaa.mil.hn:Ejercito2021*') }
+    })
+    .then(response => response.json())
+    .then(data => {
+        vectorLayer.getSource().clear(); // Limpia los puntos anteriores
+
+        data.forEach(posicion => {
+            let device = deviceData[posicion.deviceId] || { name: "Desconocido", category: "default" };
+            let coordenadas = ol.proj.fromLonLat([posicion.longitude, posicion.latitude]);
+
+            // 🔹 Crear el marcador con icono
+            let marcador = new ol.Feature({
+                geometry: new ol.geom.Point(coordenadas)
+            });
+
+            marcador.setStyle(new ol.style.Style({
+                image: new ol.style.Icon({
+                    src: getIcon(device.category), // Icono según la categoría
+                    scale: 0.8
+                }),
+                text: new ol.style.Text({
+                    text: device.name,
+                    offsetY: -20,
+                    font: '14px Arial',
+                    fill: new ol.style.Fill({ color: 'black' }),
+                    stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+                })
+            }));
+
+            vectorLayer.getSource().addFeature(marcador);
+        });
+    })
+    .catch(error => console.error('Error obteniendo posiciones:', error));
+}
+
+// 📌 Cargar dispositivos y luego posiciones
+obtenerDispositivos();
+setInterval(obtenerDispositivos, 1000); // Actualizar cada 10s
+</script>
+{% endblock %}

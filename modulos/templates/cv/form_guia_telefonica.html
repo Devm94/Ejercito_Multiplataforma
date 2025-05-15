@@ -1,0 +1,190 @@
+{% extends '../core/base.html' %}
+{% load static %}
+{% block 'contenido' %}
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css'%}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css'%}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css'%}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Estilos para pantalla completa -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.4.0/Control.FullScreen.css">
+<!-- Script para pantalla completa -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.4.0/Control.FullScreen.js"></script>
+  
+  <style>
+    /* Style the container to limit its size */
+    .dataTables_filter {
+            float: right;
+    }
+    .dt-buttons {
+            float :left;
+     }
+
+     .btn_add_req{
+            float :right;
+     }
+    
+    .small-table {
+    font-size: 0.875em; /* Reducir el tamaño de la fuente */
+    }
+
+    .compact-table td, 
+    .compact-table th {
+      padding: 0.3rem; /* Reducir el padding */
+    }
+    body.fullscreen #map {
+      height: 100%; /* Altura completa para pantalla completa */
+    }
+  </style>
+  <section class="content-header">
+</section>
+<section class="content">
+  {% csrf_token %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="row mb-12">
+              <div class="col text-center">
+                <img
+                  src="{% static '../static/recursos/logo_institucion.png' %}"
+                  alt="Logo de la Institución"
+                  class="img-fluid"
+                  style="max-width: 55px"
+                />
+              </div>
+            </div>
+            <div class="row mb-12">
+              <div class="col text-center">
+                <h4>Guía Telefónica del Ejército</h4>
+              </div>
+            </div>
+            <div class="row mb-12">
+              <div class="col-md-8 offset-md-2">
+                <input
+                  type="text"
+                  id="search-input"
+                  class="form-control"
+                  placeholder="Buscar numero telefonico..."
+                />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                <table
+                  id="example1"
+                  class="table table-bordered table-striped table-sm compact-table small"
+                >
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Depto.</th>
+                      <th>Munic.</th>
+                      <th>CV</th>
+                      <th>Grado</th>
+                      <th>Nombre</th>
+                      <th>Num</th>
+                      <th>Grado</th>
+                      <th>Nombre</th>
+                      <th>Num</th>
+                    </tr>
+                  </thead>
+                  <tbody id="contactosBody">
+                    {% for contacto in contactos %}
+                    <tr>
+                      <td>{{ forloop.counter }}</td>
+                      <td>{{ contacto.depto }}</td>
+                      <td>{{ contacto.munic }}</td>
+                      <td>{{ contacto.cv }}</td>
+                      <td>{{ contacto.grado1 }}</td>
+                      <td>{{ contacto.nom1 }}</td>
+                      <td>{{ contacto.num1 }}</td>
+                      <td>{{ contacto.grado2 }}</td>
+                      <td>{{ contacto.nom2 }}</td>
+                      <td>{{ contacto.num2 }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- jQuery -->
+<script src="../../static/lib/adminlte/plugins/jquery/jquery.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="../../static/lib/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+<!-- DataTables  & Plugins -->
+<script src="../../static/lib/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/jszip/jszip.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
+<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script>
+  jQuery(document).ready(function ($) {
+    $("#example1").DataTable({
+      // Habilita el desplazamiento horizontal si es necesario
+      language: {
+        decimal: "",
+        emptyTable: "No hay datos disponibles en la tabla",
+        info: "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+        infoEmpty: "Mostrando 0 a 0 de 0 entradas",
+        infoFiltered: "(filtrado de _MAX_ entradas totales)",
+        infoPostFix: "",
+        thousands: ",",
+        lengthMenu: "Mostrar _MENU_ entradas",
+        loadingRecords: "Cargando...",
+        processing: "Procesando...",
+        search: "Buscar:",
+        zeroRecords: "No se encontraron registros coincidentes",
+        paginate: {
+          first: "Primero",
+          last: "Último",
+          next: "Siguiente",
+          previous: "Anterior",
+        },
+        aria: {
+          sortAscending: ": activar para ordenar la columna ascendente",
+          sortDescending: ": activar para ordenar la columna descendente",
+        },
+      },
+    });
+    var buttons = new $.fn.dataTable.Buttons($("#example1").DataTable(), {
+      buttons: [
+        {
+          extend: "excel",
+          className: "btn btn-primary",
+          text: '<i class="fas fa-file-excel"></i> Excel',
+        },
+        /*{ extend: 'pdf', className: 'btn btn-primary', text: '<i class="fas fa-file-pdf"></i> PDF' },
+         */ {
+          extend: "print",
+          className: "btn btn-primary",
+          text: '<i class="fas fa-print"></i> Imprimir',
+        },
+      ],
+    })
+      .container()
+      .appendTo($(".dt-buttons"));
+    var table = $("#example1").DataTable();
+
+    // Filtrado con input externo
+    $("#search-input").on("keyup", function () {
+      table.search(this.value).draw(); // Actualiza la tabla basada en el valor del input
+    });
+  });
+</script>
+{% endblock %}
