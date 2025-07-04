@@ -1,0 +1,59 @@
+    /* Style the container to limit its size */
+    .dataTables_filter {
+            float: right;
+    }
+    .dt-buttons {
+            float :left;
+     }
+
+     .btn_add_req{
+            float :right;
+     }
+    
+    .small-table {
+    font-size: 0.875em; /* Reducir el tamaño de la fuente */
+    }
+
+    .compact-table td, 
+    .compact-table th {
+      padding: 0.3rem; /* Reducir el padding */
+    }
+    body.fullscreen #map {
+      height: 100%; /* Altura completa para pantalla completa */
+    }
+    .popup-content {
+  font-size: 0.85rem;
+  max-width: 250px;
+}
+
+.popup-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #007bff;
+}
+.popup-content .badge {
+  font-size: 0.75em;
+  border-radius: 0.25rem;
+  background-color: #17a2b8;
+  color: #fff;
+}
+.popup-table-container {
+  font-size: 0.85rem;
+  max-width: 280px;
+}
+
+.popup-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.popup-table th {
+  text-align: left;
+  background-color: #f8f9fa;
+  padding: 4px;
+  font-weight: 600;
+  color: #333;
+  border: 1px solid #dee2e6;
+  width: 40%;
+}

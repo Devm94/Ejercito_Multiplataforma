@@ -17,9 +17,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'leaflet',
     'modulos',
 ]
 
+LEAFLET_CONFIG = {
+    'DEFAULT_CENTER': (14.6, -86.8),  # Centro aproximado de Honduras
+    'DEFAULT_ZOOM': 7,
+    'MIN_ZOOM': 6,
+    'MAX_ZOOM': 12,
+}
+
+GDAL_LIBRARY_PATH = r"C:\OSGeo4W\bin\gdal310.dll"  # usa la ruta real de tu archivo
+GEOS_LIBRARY_PATH = r"C:\OSGeo4W\bin\geos_c.dll"   # Ruta real de la DLL de GEOS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -49,7 +60,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'multiplataforma.wsgi.application'
-
+""" 
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
@@ -62,8 +73,17 @@ DATABASES = {
             'driver': 'ODBC Driver 17 for SQL Server',
                      },
     }
+} """
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'multiplataforma',
+        'USER': 'postgres',
+        'PASSWORD': 'Tecnologia13',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

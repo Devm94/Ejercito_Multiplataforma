@@ -6,10 +6,52 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <section class="content pt-3">
-      <div class="container-fluid">
-
-        <!-- Primera fila: 3 gráficos pastel -->
+  <section class="content pt-3">
+    <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Distribución de Centros de Votación por Estado</h3>
+              </div>
+              <div class="card-body">
+                  <canvas id="estadoChart" width="200" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Cantidad de Centros de Votación por Departamento</h3>
+              </div>
+              <div class="card-body">
+                  <canvas id="deptoChart" width="200" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+                <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Carga Electoral Total por Departamento</h3>
+              </div>
+              <div class="card-body">
+                  <canvas id="cargaElectoralChart" width="200" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Cantidad de Centros de Votación por Departamento</h3>
+              </div>
+              <div class="card-body">
+                  <canvas id="deptoChart" width="200" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="row">
           <div class="col-md-4">
             <div class="card">
@@ -129,4 +171,93 @@
     chartConfig2(document.getElementById('chart3'), 'Estado C');
   };
 </script>
+<script>
+      // Gráfico por estado
+        const estadoCtx = document.getElementById('estadoChart').getContext('2d');
+        new Chart(estadoCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ labels_estado|safe }},
+                datasets: [{
+                    label: 'Cantidad de CV por Estado',
+                    data: {{ data_estado|safe }},
+                    backgroundColor: '#3498db',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+
+        // Gráfico por departamento
+        const deptoCtx = document.getElementById('deptoChart').getContext('2d');
+        new Chart(deptoCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ labels_depto|safe }},
+                datasets: [{
+                    label: 'Cantidad de CV por Departamento',
+                    data: {{ data_depto|safe }},
+                    backgroundColor: '#2ecc71',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y', // Barras horizontales
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+        const ctx = document.getElementById('cargaElectoralChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ labels_carga|safe }},
+                datasets: [{
+                    label: 'Carga Electoral',
+                    data: {{ data_carga|safe }},
+                    backgroundColor: '#e67e22'
+                }]
+            },
+            options: {
+                responsive: true,
+                indexAxis: 'y',  // Horizontal
+                scales: {
+                    x: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ' ' + context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}

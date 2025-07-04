@@ -1,0 +1,11 @@
+INSERT INTO modulos_estado (descrip_corta) VALUES
+('Inactivo'),
+('Activo'),
+('Abierto'),
+('Cerrado')
+
+
+INSERT INTO modulos_area (descrip_corta) VALUES
+('Urbana'),
+('Rural')
+

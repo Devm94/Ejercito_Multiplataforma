@@ -1,6 +1,8 @@
 import os
 from uuid import uuid4
 from django.db import models
+from django.contrib.gis.db import models
+from django.contrib.auth.models import User
 
 def camb_nom_arch(instance, filename):
     extension = os.path.splitext(filename)[1]
@@ -78,4 +80,37 @@ class contactoxcv(models.Model):
     nom = models.CharField(max_length=100)
     num= models.CharField(max_length=100)
     img = models.FileField(upload_to=camb_nom_arch, null = True, blank= True)
+    cod_cv = models.ForeignKey(cv, on_delete=models.CASCADE, null=True)
 
+class Munic_Geo(models.Model):
+    nombre = models.CharField(max_length=100)
+    shapeid = models.CharField(max_length=50)
+    cod_munic = models.ForeignKey(munic, on_delete=models.CASCADE, null=True)
+    cod_depto = models.ForeignKey(depto, on_delete=models.CASCADE, null=True)
+    geom = models.MultiPolygonField()
+
+
+class PerfilUsuario(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    unidad_militar = models.ForeignKey(procedencia, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.usuario.username
+    
+
+class Guia_Telefonica(models.Model):
+    no = models.IntegerField(null=True, blank=True, unique=True)
+    grado = models.CharField(max_length=100)
+    nom_ape  = models.CharField(max_length=100)
+    fuerza = models.CharField(max_length=100)
+    unidad = models.CharField(max_length=100)
+    cargo_actual = models.CharField(max_length=100)
+    tel_oficina = models.CharField(max_length=100)
+    tel_ip = models.CharField(max_length=100)
+    tel_celular = models.CharField(max_length=100)
+    correo_inst = models.CharField(max_length=100)
+    correo_personal = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.grado} {self.nombre} {self.apellido} - {self.cargo_actual}"
+    

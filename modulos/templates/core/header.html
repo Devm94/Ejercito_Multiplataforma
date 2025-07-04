@@ -1,69 +1,103 @@
 {% load static %}
-  <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <ul class="navbar-nav">
-      <li class="nav-item">
-        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-      </li>
-    </ul>
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-      </li>
-    </ul>
-  </nav>
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <div class="sidebar">
-      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-        <div class="image">
-          <img src="{% static 'lib/adminlte/img/user2-160x160.jpg' %}" class="img-circle elevation-2" alt="User Image" />
-        </div>
-        <div class="info">
-          <a href="#" class="d-block">CEMACRISE</a>
-        </div>
+<nav class="main-header navbar navbar-expand navbar-white navbar-light">
+  <ul class="navbar-nav">
+    <li class="nav-item">
+      <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+    </li>
+  </ul>
+  <ul class="navbar-nav ml-auto">
+    <li class="nav-item"></li>
+  </ul>
+</nav>
+<aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <div class="sidebar">
+    <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+      <div class="image">
+        <img src="{% static 'img/ejercito.png' %}" class=" elevation-2" alt="User Image" />
       </div>
-      <nav class="mt-2">
-        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <li class="nav-item">
-            <a href="{% url 'dashboard' %}" class="nav-link">
-              <i class="nav-icon fas fa-columns"></i>
-              <p>
-                Dashboard
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'cv' %}" class="nav-link">
-              <i class="nav-icon fas fa-columns"></i>
-              <p>
-                Centros de Votacion
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'mapa' %}" class="nav-link">
-              <i class="nav-icon fas fa-columns"></i>
-              <p>
-                Geoposicionamiento
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'guia_tel' %}" class="nav-link">
-              <i class="nav-icon fas fa-columns"></i>
-              <p>
-                Guia Telefonica
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'registrar_manual' %}" class="nav-link">
-              <i class="nav-icon fas fa-columns"></i>
-              <p>
-                Formulario
-              </p>
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <div class="info">
+        <a href="#" class="d-block">EJÉRCITO</a>
+      </div>
     </div>
-  </aside>
-
+    <nav class="mt-2">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-chart-pie"></i>
+            <p>
+              Reportes
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="{% url 'rpt_info_situacion' %}" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Situación Actual</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'rpt_info_gen' %}"  class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Información General</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'rpt_info_depto' %}" class="nav-link">
+                <i class="far fa-circle nav-icon"></i>
+                <p>Estado de los Deptos</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'cv' %}" class="nav-link">
+            <i class="nav-icon fas fa-landmark"></i>
+            <p>Centros de Votacion</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'admin_cv' %}" class="nav-link">
+            <i class="nav-icon fas fa-landmark"></i>
+            <p> Mis C.V.</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'mapa' %}" class="nav-link">
+            <i class="nav-icon fas fa-map"></i>
+            <p>Geoposicionamiento</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link">
+            <i class="nav-icon fas fa-phone"></i>
+            <p>
+              Guia Telefonica
+              <i class="right fas fa-angle-left"></i>
+            </p>
+          </a>
+          <ul class="nav nav-treeview">
+            <li class="nav-item">
+              <a href="{% url 'guia_tel' %}" class="nav-link">
+                <i class="far fas fa-mobile-alt nav-icon"></i>
+                <p>Ejército</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{% url 'guia_cv' %}" class="nav-link">
+                <i class="far fas fa-mobile-alt nav-icon"></i>
+                <p>Centros de Votación</p>
+              </a>
+            </li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'registrar_manual' %}" class="nav-link">
+            <i class="nav-icon fas fa-columns"></i>
+            <p>Formulario</p>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</aside>

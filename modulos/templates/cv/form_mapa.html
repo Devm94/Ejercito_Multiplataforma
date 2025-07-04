@@ -7,46 +7,28 @@
   <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css'%}">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/openlayers/4.6.5/ol.js"></script>
-  <style>
-      #map { width: 100%; height: 500px; }
-  </style>
-  
-  
-  <style>
-    /* Style the container to limit its size */
-    .dataTables_filter {
-            float: right;
-    }
-    .dt-buttons {
-            float :left;
-     }
-
-     .btn_add_req{
-            float :right;
-     }
-    
-    .small-table {
-    font-size: 0.875em; /* Reducir el tamaño de la fuente */
-    }
-
-    .compact-table td, 
-    .compact-table th {
-      padding: 0.3rem; /* Reducir el padding */
-    }
-    body.fullscreen #map {
-      height: 100%; /* Altura completa para pantalla completa */
-    }
-  </style>
-  <section class="content-header">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@latest/ol.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link rel="stylesheet" href="{% static 'css/estilos_mapa.css' %}">
+<style>
+  #map { width: 100%; height: 500px; }
+  .dataTables_filter { float: right; }
+  .dt-buttons { float: left; }
+  .btn_add_req { float: right; }
+  .small-table { font-size: 0.875em; }
+  .compact-table td, .compact-table th { padding: 0.3rem; }
+  body.fullscreen #map { height: 100%; }
+</style>
+<section class="content-header"></section>
 </section>
-<section class="content">
   {% csrf_token %}
   <div class="container-fluid">
     <div class="row">
       <div class="col-12">
+        <!-- Mapa -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Mapa de </h3>
+            <h3 class="card-title">Mapa del Traslado del Materal Electoral</h3>
             <div class="card-tools">
               <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                 <i class="fas fa-minus"></i>
@@ -56,32 +38,60 @@
               </button>
             </div>
           </div>
-          <div class="card-body" >
-            <div id="map" style="width: 100%; height: 500px;"></div>
+          <div class="card-body">
+            <div id="map"></div>
+            <div class="mt-2">
+              <strong>Leyenda:</strong>
+              <img src="{% static 'img/truck-trac-disp.svg' %}" width="20"> Activo
+              <img src="{% static 'img/truck-trac-det.svg' %}" width="20"> Detenido
+              <img src="{% static 'img/truck-trac-sc.svg' %}" width="20"> Sin conexión
+            </div>
+          </div>
+        </div>
+        <!-- Tabla de Dispositivos -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Estado de Convoy</h3>
+          </div>
+          <div class="card-body">
+            <table id="tablaConvoy" class="table table-bordered table-hover compact-table small-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Velocidad (km/h)</th>
+                  <th>Estado</th>
+                  <th>Última actualización</th>
+                  <th>Ubicación</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBody">
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
-<!-- jQuery -->
-<script src="../../static/lib/adminlte/plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="../../static/lib/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables  & Plugins -->
-<script src="../../static/lib/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/jszip/jszip.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+<!-- JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<!-- CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+
+<!-- JS -->
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap4.min.js"></script>
+
+
+
 <script>
+
   var map = new ol.Map({
     target: 'map',
     layers: [
@@ -92,23 +102,28 @@
         zoom: 6
     })
 });
-
+map.addControl(new ol.control.FullScreen());
+map.addControl(new ol.control.ScaleLine());
+map.addControl(new ol.control.ZoomSlider());
 let deviceData = {}; // Guardará los datos de los dispositivos por ID
 let vectorLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 map.addLayer(vectorLayer);
 
 // 📌 Función para obtener el icono según la categoría
-function getIcon(category) {
-    let icons = {
-        "car": "https://cdn-icons-png.flaticon.com/64/743/743131.png",
-        "bus": "https://cdn-icons-png.flaticon.com/64/2285/2285736.png",
-        "motorcycle": "https://cdn-icons-png.flaticon.com/64/3120/3120389.png",
-        "truck": "https://cdn-icons-png.flaticon.com/64/3120/3120381.png",
-        "boat": "https://cdn-icons-png.flaticon.com/64/741/741407.png",
-        "default": "https://cdn-icons-png.flaticon.com/64/847/847969.png" // Icono genérico
-    };
-    return icons[category] || icons["default"];
-}
+const getIconByEstado = (estado) => ({
+    activo: "{% static 'img/truck-trac-disp.svg' %}",
+    detenido: "{% static 'img/truck-trac-det.svg' %}",
+    sin_conexion: "{% static 'img/truck-trac-sc.svg' %}"
+}[estado] || "{% static 'img/ejercito.png' %}");
+
+  function determinarEstado(posicion) {
+    const ahora = new Date();
+    const ultimaActualizacion = new Date(posicion.deviceTime);
+    const minutos = (ahora - ultimaActualizacion) / (1000 * 60);
+    if (minutos > 30) return "sin_conexion";
+    if (posicion.speed < 1) return "detenido";
+    return "activo";
+  }
 
 // 📌 Obtener los dispositivos y sus categorías
 function obtenerDispositivos() {
@@ -135,39 +150,55 @@ function cargarPosiciones() {
     })
     .then(response => response.json())
     .then(data => {
-        vectorLayer.getSource().clear(); // Limpia los puntos anteriores
+      vectorLayer.getSource().clear();
+      const tablaBody = document.getElementById("tablaBody");
+      tablaBody.innerHTML = '';
 
-        data.forEach(posicion => {
-            let device = deviceData[posicion.deviceId] || { name: "Desconocido", category: "default" };
-            let coordenadas = ol.proj.fromLonLat([posicion.longitude, posicion.latitude]);
+      data.forEach(pos => {
+        const device = deviceData[pos.deviceId] || { name: "Desconocido", category: "default" };
+        const coord = ol.proj.fromLonLat([pos.longitude, pos.latitude]);
+        const estado = determinarEstado(pos);
 
-            // 🔹 Crear el marcador con icono
-            let marcador = new ol.Feature({
-                geometry: new ol.geom.Point(coordenadas)
-            });
+        const marker = new ol.Feature({ geometry: new ol.geom.Point(coord) });
+        marker.setStyle(new ol.style.Style({
+          image: new ol.style.Icon({ src: getIconByEstado(estado), scale: 0.2 }),
+          text: new ol.style.Text({
+            text: `${device.name} `,
+            offsetY: -20,
+            font: '13px Arial',
+            fill: new ol.style.Fill({ color: 'black' }),
+            stroke: new ol.style.Stroke({ color: 'white', width: 2 })
+          })
+        }));
+        marker.setId(pos.deviceId);
+        vectorLayer.getSource().addFeature(marker);
 
-            marcador.setStyle(new ol.style.Style({
-                image: new ol.style.Icon({
-                    src: getIcon(device.category), // Icono según la categoría
-                    scale: 0.8
-                }),
-                text: new ol.style.Text({
-                    text: device.name,
-                    offsetY: -20,
-                    font: '14px Arial',
-                    fill: new ol.style.Fill({ color: 'black' }),
-                    stroke: new ol.style.Stroke({ color: 'white', width: 2 })
-                })
-            }));
-
-            vectorLayer.getSource().addFeature(marcador);
-        });
+        // Agregar fila a la tabla
+        const row = `
+          <tr>
+            <td>${pos.deviceId}</td>
+            <td>${device.name}</td>
+            <td>${(pos.speed * 1.852).toFixed(1)}</td>
+            <td>${estado.replace('_', ' ')}</td>
+            <td>${new Date(pos.deviceTime).toLocaleString()}</td>
+            <td><button class="btn btn-sm btn-info" onclick="centrarDispositivo(${pos.deviceId})">Ver</button></td>
+          </tr>`;
+        tablaBody.insertAdjacentHTML('beforeend', row);
+      });
     })
     .catch(error => console.error('Error obteniendo posiciones:', error));
 }
+  function centrarDispositivo(id) {
+    const feature = vectorLayer.getSource().getFeatures().find(f => f.getId() === id);
+    if (feature) {
+      const geometry = feature.getGeometry();
+      map.getView().animate({ center: geometry.getCoordinates(), zoom: 12, duration: 800 });
+    }
+  }
 
-// 📌 Cargar dispositivos y luego posiciones
-obtenerDispositivos();
-setInterval(obtenerDispositivos, 1000); // Actualizar cada 10s
+
+    $('#tablaConvoy').DataTable({ responsive: true });
+    obtenerDispositivos();
+    setInterval(obtenerDispositivos, 10000); // 10s
 </script>
 {% endblock %}

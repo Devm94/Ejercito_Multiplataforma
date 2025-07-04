@@ -1,0 +1,443 @@
+{% extends '../core/base.html' %}
+{% load static %}
+{% block 'contenido' %}
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <style>
+  #example1 {
+  font-size: 12px;
+}
+  </style>
+<section class="content-header">
+</section>
+<section class="content">
+  {% csrf_token %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Listado de los Centros de Votación </h3>
+            <div class="card-tools">
+            </div>
+          </div>
+          <div class="card-body">
+            <table id="example1" class="table table-bordered table-striped table-sm compact-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Depto.</th>
+                        <th>Munic.</th>
+                        <th>Sector.</th>
+                        <th>Nombre.</th>
+                        <th>Estado.</th>
+                        <th>Contacto.</th>
+                        <th>Ubicación.</th>
+                        <th>Imagen.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                 {% for cv in cv %}
+                  <tr data-lat="{{ cv.latitud }}" data-lng="{{ cv.longitud }}" data-id="{{ cv.id }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{cv.cod_depto.descrip_corta}}</td>
+                    <td>{{cv.cod_munic.descrip_corta }} </td>
+                    <td>{{cv.sector_electoral}}</td>
+                    <td>{{cv.nom}}</td>
+                    <td>
+                      <select class="form-control form-control-sm estado-select" data-id="{{ cv.id }}">
+                        <option value="3" {% if cv.cod_estado.descrip_corta == 'Abierto' %}selected{% endif %}>Abierto</option>
+                        <option value="4" {% if cv.cod_estado.descrip_corta == 'Cerrado' %}selected{% endif %}>Cerrado</option>
+                        <option value="2" {% if cv.cod_estado.descrip_corta == 'Activo' %}selected{% endif %}>Activo</option>
+                        <option value="1" {% if cv.cod_estado.descrip_corta == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-success btn-sm btn-block" data-toggle="modal" data-target="#modalpersonalcv" onclick="verPersonalCV({{ cv.id }})">
+                        Ver
+                      </button>
+                    </td>
+                    <td>
+                      <button type="button" class="btn btn-outline-info btn-sm btn-block" data-toggle="modal" data-target="#modalubicacioncv" onclick="mostrarMapaCentroEditable({{ cv.id }}, {{ cv.latitud }}, {{ cv.longitud }}, '{{ cv.nom|escapejs }}')">
+                        Ver
+                      </button>
+                    </td>
+                    <td><button type="button" class="btn btn-outline-dark btn-sm btn-block" data-toggle="modal" data-target="#modalImagenCentro" onclick="mostrarModalImagenCentro({{ cv.id }})">
+                      Ver
+                    </button>
+                  </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="modalpersonalcv" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalpersonalcvLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header ">
+        <h5 class="modal-title">Personal empeñado en el CV</h5>
+        <button type="button" class="btn btn-close btn-secondary" data-dismiss="modal"  aria-label="Cerrar">Cerrar</button>
+      </div>
+      <div class="modal-body">
+        <div id="listaPersonalCV">
+          <div class="text-center">Cargando...</div>
+        </div>
+        <hr>
+        <h6 class="text-center" >Agregar nuevo personal</h6>
+        <form id="formAgregarPersonal" onsubmit="agregarPersonal(event)">
+          <div class="row g-2 mb-3 seguridad-item">
+            <div class="col-12 col-md-2">
+              <div class="form-group">
+                <input type="hidden" id="id_centro_hidden" name="centro_id">
+                <label for="grado" class="form-label">Grado/Rango</label>
+                <select class="form-control form-control-sm" id="grado" name="grado[]">
+                  <option value="">Seleccione</option>
+                  <option value="SOLD.">SOLD.</option>
+                  <option value="CABO">CABO</option>
+                  <option value="SGTO.RASO">SGTO.RASO</option>
+                  <option value="SGTO. 2NDO">SGTO. 2NDO</option>
+                  <option value="SGTO. 1RO">SGTO. 1RO</option>
+                  <option value="SGTO. MAYOR">SGTO. MAYOR</option>
+                  <option value="COMANDO I">COMANDO I</option>
+                  <option value="COMANDO II">COMANDO II</option>
+                  <option value="COMANDO III">COMANDO III</option>
+                  <option value="JEFE PRIMERO">SBTTE</option>
+                  <option value="JEFE MAESTRO">SBTTE</option>
+                  <option value="JEFE MAYOR">SBTTE</option>
+                  <option value="STTE">TTE</option>
+                  <option value="TTE">TTE</option>
+                  <option value="CAP">CPTN</option>
+                  <option value="MY">MY</option>
+                  <option value="TCNEL">TCNEL</option>
+                  <option value="CNEL">CNEL</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Nombre Completo</label>
+              <input type="text" class="form-control form-control-sm" name="nombre" required />
+            </div>
+            <div class="col-12 col-md-2">
+              <label class="form-label">Teléfono</label>
+              <input type="text" class="form-control form-control-sm telefono-mask" name="telefono" placeholder="####-####" required />
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Foto</label>
+              <input type="file" class="form-control form-control-sm" name="foto" />
+            </div>
+          </div>
+          <div class="mb-3 text-center">
+            <button type="submit" id="add-seguridad" class="btn btn-outline-secondary btn-sm">+ Agregar Personal</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalubicacioncv" class="modal fade"  tabindex="-1" role="dialog" aria-labelledby="modalDetalleLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="modalDetalleLabel">Ubicacion del Centro de Votación</h5>
+        <button type="button" class="btn btn-close btn-secondary" data-dismiss="modal"  aria-label="Cerrar">Cerrar</button>
+      </div>
+      <div class="modal-body">
+        <div id="mapaCentro" style="height: 400px; width: 100%;"></div>
+        <input type="hidden" id="ubicacionCentroId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="guardarUbicacionCentro()">Guardar ubicación</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalImagenCentro" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalpersonalcvLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Imagen del Centro de Votación</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imgCentroPreview" src="/static/img/no-image.png" alt="Imagen del centro" class="img-fluid rounded mb-3" style="max-height: 300px;">  
+        <form id="formImagenCentro">
+          <input type="hidden" name="centro_id" id="img_centro_id">
+          <div class="form-group">
+            <label for="nueva_foto">Seleccionar nueva imagen</label>
+            <input type="file" class="form-control-file" name="nueva_foto" id="nueva_foto" accept="image/*" required>
+          </div>
+          <button type="submit" class="btn btn-primary mt-2">Guardar Imagen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="{% static 'js/util_input.js' %}"></script>
+<script src="{% static 'js/tabla.js' %}"></script>
+<script>
+  $('.telefono-mask').mask('0000-0000')
+function verPersonalCV(centroId) {
+    $('#id_centro_hidden').val(centroId); // Para el formulario
+    $('#listaPersonalCV').html('<div class="text-center">Cargando...</div>');
+    document.getElementById("formAgregarPersonal").reset();
+    fetch(`/centro/${centroId}/personal/`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.length === 0) {
+          $('#listaPersonalCV').html('<div class="text-center text-muted">No hay personal asignado.</div>');
+          return;
+        }
+        const html = data.map(p => `
+        <div class="d-flex mb-3">
+        <img src="${p.img || '/static/img/default-user.png'}" width="60" class="img-thumbnail mr-2">
+        <div>
+        <strong>${p.nom}</strong>
+        <br>
+        Tel: ${p.num}
+        </div>
+        </div>
+        `).join('');
+        $('#listaPersonalCV').html(html);
+    })
+    .catch(() => {
+      $('#listaPersonalCV').html('<div class="text-danger text-center">Error al cargar los datos.</div>');
+    });
+}
+
+function verPersonalCV(centroId) {
+  $('#id_centro_hidden').val(centroId); // Para el formulario
+  $('#listaPersonalCV').html('<div class="text-center">Cargando...</div>');
+  document.getElementById("formAgregarPersonal").reset();
+  fetch(`/centro/${centroId}/personal/`)
+  .then(response => response.json())
+  .then(data => {
+    if (data.length === 0) {
+      $('#listaPersonalCV').html('<div class="text-center text-muted">No hay personal asignado.</div>');
+      return;
+    }
+    const html = `
+       <table class="table table-sm table-bordered align-middle text-center">
+       <thead class="thead-light">
+       <tr>
+        <th>Foto</th>
+        <th>Nombre</th>
+        <th>Teléfono</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${data.map(p => `
+        <tr>
+          <td class="align-middle">
+            <img src="${p.img || '/static/img/default-user.png'}" width="60" height="60" class="img-thumbnail mr-2"">
+          </td>
+          <td class="align-middle">${p.nom}</td>
+          <td class="align-middle">${p.num}</td>
+          <td class="text-center align-middle" >
+            <button class="btn btn-danger btn-sm" onclick="eliminarPersonal(${p.id})">
+              <i class="fas fa-trash-alt"></i> Eliminar
+            </button>
+          </td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  `;
+      $('#listaPersonalCV').html(html);
+    })
+    .catch(() => {
+      $('#listaPersonalCV').html('<div class="text-danger text-center">Error al cargar los datos.</div>');
+    });
+}
+
+function agregarPersonal(e) {
+  e.preventDefault();
+  const form = document.getElementById('formAgregarPersonal');
+  const formData = new FormData();
+  const nom = form.grado.value.trim() + " " + form.nombre.value.trim();
+  formData.append('centro_id', form.centro_id.value);
+  formData.append('nombre', nom);
+  formData.append('telefono', form.telefono.value);
+  formData.append('foto', form.foto.files[0]);
+
+  fetch('/centro/agregar_personal/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: formData
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Error al guardar');
+       return response.json();
+    })
+    .then(res => {
+      alert('Personal agregado correctamente');
+      verPersonalCV(form.centro_id.value);  // Recargar la lista
+      form.reset();
+    })
+    .catch(() => alert('Hubo un error al guardar el personal'));
+}
+
+function eliminarPersonal(id) {
+  if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
+
+  fetch(`/centro/eliminar_personal/${id}/`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al eliminar");
+    return res.json();
+  })
+  .then(data => {
+    alert("Personal eliminado correctamente");
+    // Recarga la lista del centro actual
+    const centroId = document.getElementById("id_centro_hidden").value;
+    verPersonalCV(centroId);
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error al eliminar el personal");
+  });
+}
+
+function mostrarModalImagenCentro(centroId) {
+  document.getElementById('img_centro_id').value = centroId;
+  document.getElementById('nueva_foto').value = "";
+
+  fetch(`/centro/${centroId}/foto/`)
+    .then(res => res.json())
+    .then(data => {
+      const img = data.foto ? data.foto : '/static/img/no-image.png';
+      document.getElementById('imgCentroPreview').src = img;
+    })
+    .catch(() => {
+      document.getElementById('imgCentroPreview').src = '/static/img/no-image.png';
+    });
+}
+
+document.getElementById('formImagenCentro').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData();
+  formData.append('centro_id', form.centro_id.value);
+  formData.append('nueva_foto', form.nueva_foto.files[0]);
+
+  fetch('/centro/guardar_foto/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert('Imagen guardada correctamente');
+      mostrarModalImagenCentro(form.centro_id.value);
+      form.reset();
+
+    })
+    .catch(() => alert('Error al guardar la imagen'));
+});
+
+let mapaCentro;
+let marcador;
+let nuevaLatLng;
+
+function mostrarMapaCentroEditable(centroId, lat, lng, nombreCentro) {
+  document.getElementById('ubicacionCentroId').value = centroId;
+  setTimeout(() => {
+    if (mapaCentro) {
+      mapaCentro.remove();
+    }
+    mapaCentro = L.map('mapaCentro').setView([lat, lng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(mapaCentro);
+    marcador = L.marker([lat, lng], {
+      draggable: true
+    }).addTo(mapaCentro).bindPopup(nombreCentro).openPopup();
+    marcador.on('dragend', function (e) {
+      nuevaLatLng = e.target.getLatLng();
+    });
+    nuevaLatLng = { lat: lat, lng: lng }; // inicial
+  }, 300);
+}
+
+function guardarUbicacionCentro() {
+  const centroId = document.getElementById('ubicacionCentroId').value;
+
+  fetch('/centro/guardar_ubicacion/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      centro_id: centroId,
+      lat: nuevaLatLng.lat,
+      lng: nuevaLatLng.lng
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        alert('Ubicación actualizada correctamente');
+      } else {
+        alert('Error al guardar');
+      }
+    })
+    .catch(() => alert('Error al guardar'));
+}
+
+document.querySelectorAll('.estado-select').forEach(select => {
+  select.addEventListener('change', function () {
+    const centroId = this.dataset.id;
+    const nuevoEstado = this.value;
+    fetch(`/centro/actualizar_estado/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ id: centroId, estado: nuevoEstado })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        console.log("Estado actualizado");
+      } else {
+        alert("Error al actualizar el estado");
+      }
+    })
+    .catch(() => alert("Error en la conexión"));
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends '../../core/base.html' %}
+{% load static %}
+{% block 'contenido' %}
+<link href="{% static 'css/leaflet.css' %}" rel="stylesheet" />
+<link href="{% static 'css/5_3_0_bootstrap.min.css' %}" rel="stylesheet">
+<link href="{% static 'css/rpt_info_depto.css' %}" rel="stylesheet">
+<section class="content-header">
+</section>
+<section class="content">
+  {% csrf_token %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Mapa de la Situación de los Municipios</h3>
+            <div class="card-tools">
+            </div>
+          </div>
+          <div class="card-body" >
+              <label for="departamento1">Selecciona un departamento:</label><i class="bi bi-info-circle-fill" title="Selecciona un departamento para visualizar el estado de los CV de sus municipios."></i>
+              <select id="departamento1">
+                <option value="">-- Selecciona --</option>
+                {% for dpto in departamentos %}
+                <option value="{{ dpto.id }}">{{ dpto.descrip_corta }}</option>
+                {% endfor %}
+              </select>
+              <div id="map" style="width: 100%; height: 400px;">
+                <div id="loader">
+                  <img src="{% static 'img/ejercito.png' %}" alt="Logo" style="width: 80px; margin-bottom: 10px;">
+                  <div class="spinner">
+                  </div>
+                  <div id="loader-text">
+                    Cargando...
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="modal fade" id="modalCentros" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalLabel">Centros de Votación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div id="listaCentros"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/leaflet.js' %}"></script>
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'js/rpt_info_depto.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const map = L.map('map').setView([14.656742, -86.667712], 7);
+    const loader = document.getElementById('loader');
+    loader.style.display = 'flex';
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    let layerMunicipios;
+    fetch("{% url 'geojson_municipios' %}")
+        .then(response => response.json())
+        .then(data => {
+            L.geoJSON(JSON.parse(data), {
+                onEachFeature: function (feature, layer) {
+                    layer.bindPopup(`<strong>${feature.properties.nombre}</strong>`);
+                },
+                style: {
+                    color: "#3388ff",
+                    weight: 1
+                }
+            }).addTo(map);
+        })
+        .catch(error => {
+            console.error("Error al cargar el GeoJSON:", error);
+            alert("No se pudo cargar el mapa. Verifica la consola.");
+        })
+        .finally(() => {
+            loader.style.display = 'none';
+        });
+    function obtenerColorPorEstado(props) {
+        if ((props.inactivos ?? 0) > 0) return '#BDC3C7';     // Gris para Inactivos
+        if ((props.activos ?? 0) > 0) return '#F1C40F';       // Amarillo para Activos
+        if ((props.abiertos ?? 0) > 0) return '#28B463';      // Verde para Abiertos
+        if ((props.cerrados ?? 0) > 0) return '#E74C3C';      // Rojo para Cerrados
+        return '#D5D8DC';                                     // Gris claro si no hay datos
+    }
+    document.getElementById('departamento1').addEventListener('change', function () {
+        const depto = this.value;
+        if (layerMunicipios) {
+            map.removeLayer(layerMunicipios);
+        }
+        if (depto !== "") {
+            loader.style.display = 'flex';
+            fetch(`/geojson/${depto}`)
+                .then(response => response.json())
+                .then(data => {
+                    layerMunicipios = L.geoJSON(data, {
+                        style: function (feature) {
+                            const props = feature.properties;
+                            return {
+                                color: 'white',
+                                weight: 1,
+                                fillColor: obtenerColorPorEstado(props),
+                                fillOpacity: 0.7
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            const props = feature.properties;
+                            const popupContent = `
+                                <strong>${props.nombre}</strong><br>
+                                Abiertos: ${props.abiertos ?? 0}<br>
+                                Inactivos: ${props.inactivos ?? 0}<br>
+                                Cerrados: ${props.cerrados ?? 0}<br>
+                                Activos: ${props.activos ?? 0}<br>
+                                <button onclick="mostrarCentros('${props.codmunicipio}')">Ver Centros</button>
+                            `;
+                            layer.bindPopup(popupContent);
+                        }
+                    }).addTo(map);
+                    map.fitBounds(layerMunicipios.getBounds());
+                })
+                .catch(error => {
+                    console.error("Error al cargar el GeoJSON:", error);
+                    alert("No se pudo cargar el mapa. Verifica la consola.");
+                })
+                .finally(() => {
+                    loader.style.display = 'none';
+                });
+        }
+    });
+});
+</script>
+{% endblock %}

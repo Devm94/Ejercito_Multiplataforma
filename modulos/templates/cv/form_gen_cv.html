@@ -1,45 +1,15 @@
 {% extends '../core/base.html' %}
 {% load static %}
 {% block 'contenido' %}
-  <!-- DataTables -->
   <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
   <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
   <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.gridlayer.googlemutant/Leaflet.GoogleMutant.js"></script>
-
-<!-- Estilos para pantalla completa -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.4.0/Control.FullScreen.css">
-<!-- Script para pantalla completa -->
-<script src="https://cdn.jsdelivr.net/npm/leaflet.fullscreen@2.4.0/Control.FullScreen.js"></script>
-  
-  <style>
-    /* Style the container to limit its size */
-    .dataTables_filter {
-            float: right;
-    }
-    .dt-buttons {
-            float :left;
-     }
-
-     .btn_add_req{
-            float :right;
-     }
-    
-    .small-table {
-    font-size: 0.875em; /* Reducir el tamaño de la fuente */
-    }
-
-    .compact-table td, 
-    .compact-table th {
-      padding: 0.3rem; /* Reducir el padding */
-    }
-    body.fullscreen #map {
-      height: 100%; /* Altura completa para pantalla completa */
-    }
-  </style>
-  <section class="content-header">
+  <link rel="stylesheet" href="{% static 'css/leaflet.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/Control.FullScreen.css' %}"/>
+  <link rel="stylesheet" href="{% static 'css/rpt_info_depto.css' %}" />
+  <script src="{% static 'js/leaflet.js' %}"></script>
+  <script src="{% static 'js/Control.FullScreen.js' %}"></script>
+<section class="content-header">
 </section>
 <section class="content">
   {% csrf_token %}
@@ -48,18 +18,21 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Mapa de </h3>
+            <h3 class="card-title">Mapa de los Centros de Votación</h3>
             <div class="card-tools">
-              <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                <i class="fas fa-minus"></i>
-              </button>
-              <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                <i class="fas fa-times"></i>
-              </button>
             </div>
           </div>
           <div class="card-body" >
-            <div id="map" style="width: 100%; height: 400px;"></div>
+            <div id="map" style="width: 100%; height: 400px;">
+                <div id="loader">
+                  <img src="{% static 'img/ejercito.png' %}" alt="Logo" style="width: 80px; margin-bottom: 10px;">
+                  <div class="spinner">
+                  </div>
+                  <div id="loader-text">
+                    Cargando...
+                  </div>
+                </div>
+            </div>
           </div>
         </div>
       </div>
@@ -68,7 +41,7 @@
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Registro de </h3>
+            <h3 class="card-title">Listado de los Centros de Votación </h3>
             <div class="card-tools">
               <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
                 <i class="fas fa-minus"></i>
@@ -93,7 +66,7 @@
                 </thead>
                 <tbody>
                  {% for cv in cv %}
-                  <tr data-lat="{{ cv.latitud }}" data-lng="{{ cv.longitud }}">
+                  <tr data-lat="{{ cv.latitud }}" data-lng="{{ cv.longitud }}" data-id="{{ cv.id }}">
                     <td>{{ forloop.counter }}</td>
                     <td>{{cv.cod_depto.descrip_corta}}</td>
                     <td>{{cv.cod_munic.descrip_corta }} </td>
@@ -113,189 +86,85 @@
       </div>
     </div>
   </div>
+<div class="modal fade" id="modalDetalleCentro" tabindex="-1" aria-labelledby="modalDetalleLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="modalDetalleLabel">Detalle del Centro de Votación</h5>
+        <button type="button" class="btn btn-close btn-secondary" data-bs-dismiss="modal"  aria-label="Cerrar">Cerrar</button>
+      </div>
+      <div class="modal-body" id="contenidoModalCentro">
+        <div class="text-center">Cargando...</div>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
 </section>
-<!-- jQuery -->
-<script src="../../static/lib/adminlte/plugins/jquery/jquery.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="../../static/lib/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- DataTables  & Plugins -->
-<script src="../../static/lib/adminlte/plugins/datatables/jquery.dataTables.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/jszip/jszip.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/pdfmake/pdfmake.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/pdfmake/vfs_fonts.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.html5.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.print.min.js"></script>
-<script src="../../static/lib/adminlte/plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'js/mapa_config.js' %}"></script>
+<script src="{% static 'js/tabla.js' %}"></script>
+
 <script>
-  jQuery(document).ready(function($) {
-    $('#example1').DataTable({
-       "language": {
-            "decimal":        "",
-            "emptyTable":     "No hay datos disponibles en la tabla",
-            "info":           "Mostrando _START_ a _END_ de _TOTAL_ entradas",
-            "infoEmpty":      "Mostrando 0 a 0 de 0 entradas",
-            "infoFiltered":   "(filtrado de _MAX_ entradas totales)",
-            "infoPostFix":    "",
-            "thousands":      ",",
-            "lengthMenu":     "Mostrar _MENU_ entradas",
-            "loadingRecords": "Cargando...",
-            "processing":     "Procesando...",
-            "search":         "Buscar:",
-            "zeroRecords":    "No se encontraron registros coincidentes",
-            "paginate": {
-                "first":      "Primero",
-                "last":       "Último",
-                "next":       "Siguiente",
-                "previous":   "Anterior"
-            },
-            "aria": {
-                "sortAscending":  ": activar para ordenar la columna ascendente",
-                "sortDescending": ": activar para ordenar la columna descendente"
-            }
-        }
+  loader.style.display = 'none';
+function verDetalle(centroId) {
+  $('#modalDetalleCentro').modal('show');
+  $('#contenidoModalCentro').html('<div class="text-center">Cargando información...</div>');
+
+  fetch(`/centro/detalle/${centroId}/`)
+    .then(response => response.json())
+    .then(data => {
+      const fotoCentro = data.foto_centro ? data.foto_centro : '/static/img/Imagen_no_disponible.svg.png'; // ⚠️ Asegúrate que la ruta exista
+
+      const personalHTML = (data.personal && data.personal.length > 0)
+        ? data.personal.map(p => {
+            const fotoPersonal = p.foto ? p.foto : '/static/img/derrumbe.png'; // ⚠️ Imagen por defecto
+            return `
+              <div class="col-md-6 mb-3 d-flex">
+                <img src="${fotoPersonal}" class="img-thumbnail me-2" width="70" height="70" alt="Foto del Personal">
+                <div>
+                  <strong>${p.gradynom}</strong><br>
+                  Tel: ${p.telefono}
+                </div>
+              </div>
+            `;
+          }).join('')
+        : '<div class="col-12 text-center text-muted">No hay personal asignado</div>';
+
+      const centroHTML = `
+        <div class="row">
+          <div class="col-md-5 text-center">
+            <img src="${fotoCentro}" class="img-fluid rounded mb-3" alt="Centro de Votación" width="250" height="250">
+          </div>
+          <div class="col-md-7">
+            <h5>${data.nombre}</h5>
+            <p><b>Departamento:</b> ${data.departamento}<br>
+               <b>Municipio:</b> ${data.municipio}<br>
+               <b>Sector:</b> ${data.sector}<br>
+               <b>Carga Electoral:</b> ${data.carga}</p>
+          </div>
+        </div>
+        <hr>
+        <h6>Personal Asignado</h6>
+        <div class="row">
+          ${personalHTML}
+        </div>
+      `;
+
+      $('#contenidoModalCentro').html(centroHTML);
+    })
+    .catch(error => {
+      console.error("Error:", error);
+      $('#contenidoModalCentro').html('<div class="text-danger text-center">Error al cargar los datos.</div>');
     });
-
-    var buttons = new $.fn.dataTable.Buttons($('#example1').DataTable(), {
-            buttons: [
-                { extend: 'excel', className: 'btn btn-primary', text: '<i class="fas fa-file-excel"></i> Excel' },
-                { extend: 'print', className: 'btn btn-primary', text: '<i class="fas fa-print"></i> Imprimir' },
-            ]
-        }).container().appendTo($('.dt-buttons'));
-  })
-// Definimos las capas base
-const capaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-});
-
-const capaEsri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
-    'World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-    attribution: '&copy; Esri & contributors'
-});
-
-const capaCartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; CartoDB'
-});
-
-const capaCartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; CartoDB'
-});
-
-const capaEsriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
-  'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: '&copy; Esri'
-});
-
-const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
-});
-
-const cartoPositron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 20
-});
-
-const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
-  'World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri &mdash; Source: Esri, USGS, NOAA',
-  maxZoom: 20
-});
-
-const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
-  'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri',
-  maxZoom: 20
-});
-
-const esriLabels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/' +
-  'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Labels &copy; Esri',
-  pane: 'overlayPane'
-});
-
-// Inicializamos el mapa con la capa base OSM
-const map = L.map('map', {
-  center: [14.664990, -86.895006],
-  zoom: 7,
-  fullscreenControl: true,
-  fullscreenControlOptions: { position: 'topleft' },
-  layers: [capaOSM]
-});
-
-// Objetos para las capas superpuestas (por estado)
-const capasEstado = {
-  'Abierto': L.layerGroup(),
-  'Cerrado': L.layerGroup(),
-  'Activo': L.layerGroup(),
-  'Inactivo': L.layerGroup(),
-  'Otro': L.layerGroup()
-};
-
-// Agregar los marcadores a sus respectivas capas
-const rows = document.querySelectorAll("table tbody tr");
-rows.forEach(row => {
-  const lat = row.dataset.lat;
-  const lng = row.dataset.lng;
-  if (lat && lng) {
-    const estado = row.cells[6].innerText.trim();
-    let color;
-    let capaDestino;
-
-    switch (estado) {
-      case 'Abierto':
-        color = 'green'; capaDestino = capasEstado['Abierto']; break;
-      case 'Cerrado':
-        color = 'red'; capaDestino = capasEstado['Cerrado']; break;
-      case 'Activo':
-        color = 'orange'; capaDestino = capasEstado['Activo']; break;
-      case 'Inactivo':
-        color = 'gray'; capaDestino = capasEstado['Inactivo']; break;
-      default:
-        color = 'blue'; capaDestino = capasEstado['Otro'];
-    }
-
-    const marker = L.circleMarker([lat, lng], {
-      radius: 3,
-      color: color,
-      fillColor: color,
-      fillOpacity: 0.8
-    }).bindPopup(`
-      <b>Departamento:</b> ${row.cells[1].innerText} <br>
-      <b>Municipio:</b> ${row.cells[2].innerText} <br>
-      <b>Sector:</b> ${row.cells[3].innerText}<br>
-      <b>Carga Electoral:</b> ${row.cells[4].innerText}<br>
-      <b>Nombre:</b> ${row.cells[5].innerText}<br>
-      <b>Estado:</b> ${row.cells[6].innerText}<br>
-    `);
-
-    marker.addTo(capaDestino);
-
-    // Evento para centrar y mostrar el popup desde la tabla
-    row.addEventListener('click', () => {
-      map.setView(marker.getLatLng(), 20);
-      marker.openPopup();
-    });
-  }
-});
-
-// Agregamos todas las capas de estado al mapa por defecto (opcional)
-Object.values(capasEstado).forEach(capa => capa.addTo(map));
-
-// Control de capas
-L.control.layers(
-  {
-  "OpenStreetMap": osm,
-  "Esri Satélite": L.layerGroup([esriSat, esriLabels])
-  },
-  { "Abierto": capasEstado['Abierto'], "Cerrado": capasEstado['Cerrado'], "Activo": capasEstado['Activo'], "Inactivo": capasEstado['Inactivo']},
-  { collapsed: false }
-).addTo(map);
-
+}
 </script>
 {% endblock %}
