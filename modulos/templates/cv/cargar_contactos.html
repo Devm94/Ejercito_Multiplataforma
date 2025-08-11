@@ -64,6 +64,35 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-file-excel mr-2"></i> Cargar CME desde Excel
+            </h5>
+          </div>
+          <div class="card-body">
+            <form method="POST"  action="{% url 'cargar_cme' %}" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="form-row align-items-center">
+                <div class="col-auto">
+                  <label for="archivo_excel" class="col-form-label font-weight-bold">Archivo Excel:</label>
+                </div>
+                <div class="col">
+                  <input type="file" class="form-control-file" id="archivo_excel" name="archivo_excel" accept=".xlsx, .xls" required>
+                </div>
+                <div class="col-auto">
+                  <button type="submit" class="btn btn-success">
+                    <i class="fas fa-upload"></i> Cargar
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 

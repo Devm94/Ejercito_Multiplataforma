@@ -1,114 +1,188 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.8">
-  <title>Elecciones Generales 2025</title>
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/fontawesome-free/css/all.min.css' %}">
-  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
-  <link rel="stylesheet" href="{% static 'lib/adminlte/css/adminlte.min.css' %}">
-  <link rel="stylesheet" href="{% static 'lib/adminlte/icon/bootstrap-icons.css' %}">
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-</head>
-<body class="hold-transition sidebar-mini layout-fixed">
-  <div class="wrapper">
-    {% csrf_token %}
-    {% include 'core/header.html' %}
-
-    <div class="content-wrapper">
-      {% block 'contenido' %}
-      <br>
-      <section class="content">
-        <div class="container-fluid">
-{% comment %}           <div class="row">
-            <div class="col-12">
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Dashboard</h3>
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
-                      <i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove" title="Remove">
-                      <i class="fas fa-times"></i>
-                    </button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=0.8" />
+    <title>Elecciones Generales 2025</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'lib/adminlte/plugins/fontawesome-free/css/all.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'lib/adminlte/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'lib/adminlte/css/adminlte.min.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="{% static 'lib/adminlte/icon/bootstrap-icons.css' %}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  </head>
+  <body class="hold-transition sidebar-mini layout-fixed">
+    <div class="wrapper">
+      {% csrf_token %} {% include 'core/header.html' %}
+      <div class="content-wrapper">
+        {% block 'contenido' %}
+        <br />
+        <section class="content">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Plataforma Virtual de las Elecciones Generales 2025</h3>
+                    <div class="card-tools">
+                      <button
+                        type="button"
+                        class="btn btn-tool"
+                        data-card-widget="collapse"
+                        title="Collapse"
+                      >
+                        <i class="fas fa-minus"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-tool"
+                        data-card-widget="remove"
+                        title="Remove"
+                      >
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-lg-3 col-6">
+                        <div class="small-box bg-primary">
+                          <div class="inner">
+                            <p>Centros de Votación</p>
+                            <h3>{{CV}}</h3>
+                          </div>
+                          <div class="icon">
+                            <i
+                              class="bi bi-building"
+                              style="font-size: 50px"
+                            ></i>
+                          </div>
+                          <a href="#" class="small-box-footer"></a>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-6">
+                        <div class="small-box bg-secondary">
+                          <div class="inner">
+                            <p>Carga Electoral</p>
+                            <h3>{{ME}}</h3>
+                          </div>
+                          <div class="icon">
+                            <i
+                              class="bi bi-clipboard-data-fill"
+                              style="font-size: 50px"
+                            ></i>
+                          </div>
+                          <a href="#" class="small-box-footer"></a>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-6">
+                        <div class="small-box bg-success">
+                          <div class="inner">
+                            <p>Personal Empeñado</p>
+                            <h3>{{RH}}</h3>
+                          </div>
+                          <div class="icon">
+                            <i
+                              class="bi bi-person-fill"
+                              style="font-size: 50px"
+                            ></i>
+                          </div>
+                          <a href="#" class="small-box-footer"></a>
+                        </div>
+                      </div>
+                      <div class="col-lg-3 col-6">
+                        <div class="small-box bg-warning">
+                          <div class="inner">
+                            <p>Rutas Electorales</p>
+                            <h3>{{RUTAS}}</h3>
+                          </div>
+                          <div class="icon">
+                            <i
+                              class="bi bi-geo-alt-fill"
+                              style="font-size: 50px"
+                            ></i>
+                          </div>
+                          <a href="#" class="small-box-footer"></a>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="row text-center align-items-center">
+                      <div class="col-4 text-justify">
+                        <p class="small" style="text-align: justify">
+                          Misión <br />
+                          El Departamento de Comunicaciones e Informática,
+                          coordinará, regulará y controlará los procedimientos
+                          en el empleo de las comunicaciones, a través de las
+                          GG. UU, UU., UU. II y CC.EE. del Ejército, a partir
+                          del 301000OCT025, hasta la declaratoria de los
+                          resultados electorales en todo el territorio nacional,
+                          a fin de facilitar el comando y control, empleando
+                          medios disponibles para la recepción y transmisión de
+                          la información oportuna del Ejército, coadyuvando al
+                          cumplimiento de la misión de las Elecciones Generales
+                          2025.
+                        </p>
+                      </div>
+                      <div class="col-4">
+                        <img
+                          src="{% static 'img/Bicentenario.jpeg' %}"
+                          class="img-fluid "
+                          alt="Imagen central"
+                          style="border: 2px solid #ccc;"
+                        />
+                      </div>
+                      <div class="col-4 text-justify">
+                        <p class="small" style="text-align: justify">
+                          Intención del Comandante <br />
+                          El Departamento de Comunicaciones e Informática,
+                          coordinará, regulará y controlará los procedimientos
+                          en el empleo de las comunicaciones, a través de las
+                          GG. UU, UU., UU. II y CC.EE. del Ejército, a partir
+                          del 301000OCT025, hasta la declaratoria de los
+                          resultados electorales en todo el territorio nacional,
+                          a fin de facilitar el comando y control, empleando
+                          medios disponibles para la recepción y transmisión de
+                          la información oportuna del Ejército, coadyuvando al
+                          cumplimiento de la misión de las Elecciones Generales
+                          2025.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div class="card-body" >
-                  <div id="map" style="width: 100%; height: 400px;"></div>
-                </div>
               </div>
             </div>
-          </div> {% endcomment %}
-<!--           <div class="row">
-            <div class="col-lg-3 col-6">
-              <div class="small-box bg-info">
-                <div class="inner">
-                  <h3>{{Computadora}}</h3>
-                  <p>Computadoras</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-icon ion-monitor"></ion-icon></i>
-                </div>
-                <a href="#" class="small-box-footer">Informacion <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <div class="col-lg-3 col-6">
-              <div class="small-box bg-success">
-                <div class="inner">
-                  <h3>{{Correos}}<sup style="font-size: 20px"></sup></h3>
-  
-                  <p>Soportes de Correo</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-icon ion-email"></i>
-                </div>
-                <a href="#" class="small-box-footer">Informacion <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <div class="col-lg-3 col-6">
-              <div class="small-box bg-warning">
-                <div class="inner">
-                  <h3>{{EquiposPersonales}}</h3>
-  
-                  <p>Equipos Personales</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-icon ion-laptop"></i>
-                </div>
-                <a href="#" class="small-box-footer">Informacion<i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <div class="col-lg-3 col-6">
-              <div class="small-box bg-danger">
-                <div class="inner">
-                  <h3>{{Impresoras}}</h3>
-  
-                  <p>Impresoras</p>
-                </div>
-                <div class="icon">
-                  <i class="ion bi bi-printer"></i>
-                </div>
-                <a href="#" class="small-box-footer">Informacion <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-          </div> -->
-        </div>
-      </section>
-      {% endblock %}
-    </div>
+          </div>
+        </section>
+        {% endblock %}
+      </div>
 
-    {% include 'core/footer.html' %}
-  </div>
-  <script src="{% static 'lib/adminlte/plugins/jquery/jquery.min.js' %}"></script>
-  <script src="{% static 'lib/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <script src="{% static 'lib/adminlte/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
-  <script src="{% static 'lib/adminlte/js/adminlte.min.js' %}"></script>
-</body>
+      {% include 'core/footer.html' %}
+    </div>
+    <script src="{% static 'lib/adminlte/plugins/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'lib/adminlte/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'lib/adminlte/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js' %}"></script>
+    <script src="{% static 'lib/adminlte/js/adminlte.min.js' %}"></script>
+  </body>
 </html>

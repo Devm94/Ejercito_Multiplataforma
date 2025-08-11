@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'leaflet',
     'modulos',
+    'django.contrib.humanize',
 ]
 
 LEAFLET_CONFIG = {

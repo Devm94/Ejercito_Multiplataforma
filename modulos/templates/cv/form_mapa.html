@@ -127,7 +127,7 @@ const getIconByEstado = (estado) => ({
 
 // 📌 Obtener los dispositivos y sus categorías
 function obtenerDispositivos() {
-    fetch('http://172.21.4.13:8082/api/devices', {
+    fetch('https://vsrvtrac.ffaa.mil.hn/api/devices', {
         headers: { 'Authorization': 'Basic ' + btoa('ejercito@ffaa.mil.hn:Ejercito2021*') }
     })
     .then(response => response.json())
@@ -145,7 +145,7 @@ function obtenerDispositivos() {
 
 // 📌 Obtener posiciones y mostrar en el mapa
 function cargarPosiciones() {
-    fetch('http://172.21.4.13:8082/api/positions', {
+    fetch('https://vsrvtrac.ffaa.mil.hn/api/positions', {
         headers: { 'Authorization': 'Basic ' + btoa('ejercito@ffaa.mil.hn:Ejercito2021*') }
     })
     .then(response => response.json())

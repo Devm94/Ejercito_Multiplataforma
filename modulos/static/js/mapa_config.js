@@ -19,15 +19,15 @@ const map = L.map('map', {
     zoom: 7,
     fullscreenControl: true,
     fullscreenControlOptions: { position: 'topleft' },
-    layers: [capaOSM]
+    layers: [capaOSM],
+    minZoom: 2,  // Zoom mínimo permitido
+    maxZoom: 18  // Zoom máximo permitido
 });
 
 const capasEstado = {
-    'Abierto': L.layerGroup(),
-    'Cerrado': L.layerGroup(),
     'Activo': L.layerGroup(),
+    'En movimiento': L.layerGroup(),
     'Inactivo': L.layerGroup(),
-    'Otro': L.layerGroup()
 };
 
 const rows = document.querySelectorAll("table tbody tr");
@@ -39,9 +39,8 @@ rows.forEach(row => {
         let color;
         let capaDestino;
         switch (estado) {
-            case 'Abierto': color = 'green'; capaDestino = capasEstado['Abierto']; break;
-            case 'Cerrado': color = 'red'; capaDestino = capasEstado['Cerrado']; break;
-            case 'Activo': color = 'orange'; capaDestino = capasEstado['Activo']; break;
+            case 'Activo': color = 'green'; capaDestino = capasEstado['Activo']; break;
+            case 'En movimiento': color = 'yellow'; capaDestino = capasEstado['En movimiento']; break;
             case 'Inactivo': color = 'gray'; capaDestino = capasEstado['Inactivo']; break;
             default: color = 'blue'; capaDestino = capasEstado['Otro'];
         }
@@ -55,6 +54,7 @@ rows.forEach(row => {
   <div class="popup-table-container">
     <table class="popup-table">
         <h6 class="popup-title">${row.cells[5].innerText}</h6>
+        <tr><th>Unidad</th><td>${row.cells[7].innerText}</td></tr>
       <tr><th>Departamento</th><td>${row.cells[1].innerText}</td></tr>
       <tr><th>Municipio</th><td>${row.cells[2].innerText}</td></tr>
       <tr><th>Sector</th><td>${row.cells[3].innerText}</td></tr>
@@ -86,10 +86,9 @@ L.control.layers(
         "Esri Satélite": L.layerGroup([esriSat, esriLabels])
     },
     {
-        "Abierto": capasEstado['Abierto'],
-        "Cerrado": capasEstado['Cerrado'],
-        "Activo": capasEstado['Activo'],
-        "Inactivo": capasEstado['Inactivo']
+        "Inactivo": capasEstado['Inactivo'],
+        "En movimiento": capasEstado['En movimiento'],
+        "Activo": capasEstado['Activo']
     },
     { collapsed: false }
 ).addTo(map); 

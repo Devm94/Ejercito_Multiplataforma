@@ -1,0 +1,244 @@
+{% extends '../../core/base.html' %} {% load static %} {% block 'contenido' %}
+{% load humanize %}
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<section class="content pt-3">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Carga Electoral por Municipio</h3>
+          </div>
+          <div class="card-body">
+            <canvas
+              id="cargaElectoralMunicipioChart"
+              width="200"
+              height="200"
+            ></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Centros de Votación por Municipio</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="cvMunicipioChart" width="200" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Cantidad de JRV por Municipio</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="jrvMunicipioChart" width="200" height="150"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Estado Actual de los Municipio</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="estadoCvChart" width="200" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card mt-4">
+          <div class="card-header">
+            <h3 class="card-title">Resumen por Municipio</h3>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="table table-bordered table-hover table-striped">
+              <thead class="thead-dark">
+                <tr>
+                  <th>Municipio</th>
+                  <th>Centros de Votación (CV)</th>
+                  <th>Juntas Receptoras de Votos (JRV)</th>
+                  <th>Carga Electoral</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for fila in tabla_resumen %}
+                <tr>
+                  <td>{{ fila.municipio }}</td>
+                  <td style="text-align: center">{{ fila.cv }}</td>
+                  <td style="text-align: center">{{ fila.jrv }}</td>
+                  <td style="text-align: center">{{ fila.carga|intcomma }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+      // Gráfico de cantidad de CV por municipio
+      const codigosMunicipio = {{ codigos_municipio|safe }};
+      const cvCtx = document.getElementById('cvMunicipioChart').getContext('2d');
+      const cvChart = new Chart(cvCtx, {
+          type: 'bar',
+          data: {
+              labels: {{ labels_municipio|safe }},
+              datasets: [{
+                  label: 'Cantidad de CV',
+                  data: {{ data_cv_municipio|safe }},
+                  backgroundColor: '#3498db',
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              responsive: true,
+              indexAxis: 'y',
+              plugins: {
+                  legend: { display: false }
+              },
+              scales: {
+                  x: {
+                      beginAtZero: true,
+                      ticks: { stepSize: 1 }
+                  }
+              }
+          }
+      });
+
+      // Evento de clic en barra de gráfico de CV
+      document.getElementById('cvMunicipioChart').onclick = function(evt) {
+          const points = cvChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+          if (points.length) {
+              const index = points[0].index;
+              const codigo = codigosMunicipio[index];
+              window.location.href = `/detalle-municipio/${codigo}/`;
+          }
+      };
+
+      // Gráfico de carga electoral por municipio
+      const cargaCtx = document.getElementById('cargaElectoralMunicipioChart').getContext('2d');
+      new Chart(cargaCtx, {
+          type: 'bar',
+          data: {
+              labels: {{ labels_municipio|safe }},
+              datasets: [{
+                  label: 'Carga Electoral',
+                  data: {{ data_carga_municipio|safe }},
+                  backgroundColor: '#f39c12'
+              }]
+          },
+          options: {
+              responsive: true,
+              indexAxis: 'y',
+              scales: {
+                  x: {
+                      beginAtZero: true
+                  }
+              },
+              plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                      callbacks: {
+                          label: function(context) {
+                              return ' ' + context.raw.toLocaleString();
+                          }
+                      }
+                  }
+              }
+          }
+      });
+  const jrvCtx = document.getElementById('jrvMunicipioChart').getContext('2d');
+  new Chart(jrvCtx, {
+      type: 'bar',
+      data: {
+          labels: {{ labels_municipio|safe }},
+          datasets: [{
+              label: 'Cantidad de JRV',
+              data: {{ data_jrv_municipio|safe }},
+              backgroundColor: '#9b59b6'
+          }]
+      },
+      options: {
+          responsive: true,
+          indexAxis: 'y',
+          plugins: {
+              legend: { display: false },
+              tooltip: {
+                  callbacks: {
+                      label: function(context) {
+                          return ' ' + context.raw.toLocaleString();
+                      }
+                  }
+              }
+          },
+          scales: {
+              x: {
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+  const estadoCtx = document.getElementById('estadoCvChart').getContext('2d');
+
+  // Generar colores automáticos (puedes personalizarlos)
+  const estadoLabels = {{ estado_nombres|safe }};
+  const estadoData = {{ estado_datasets|safe }};
+  const colores = [ '#e74c3c' ,'#f1c40f','#2ecc71'];
+
+  const datasetsEstado = estadoLabels.map((estado, idx) => {
+
+    return {
+          label: estado,
+          data: estadoData[idx],
+          backgroundColor: colores[idx % colores.length],
+          borderWidth: 1
+      };
+  });
+
+  new Chart(estadoCtx, {
+      type: 'bar',
+      data: {
+          labels: {{ labels_municipio|safe }},
+          datasets: datasetsEstado
+      },
+      options: {
+          responsive: true,
+          plugins: {
+              tooltip: { mode: 'index', intersect: false },
+              legend: { position: 'top' },
+          },
+          interaction: {
+              mode: 'index',
+              intersect: false
+          },
+          scales: {
+              x: {
+                  stacked: true
+              },
+              y: {
+                  stacked: true,
+                  beginAtZero: true
+              }
+          }
+      }
+  });
+</script>
+{% endblock %}

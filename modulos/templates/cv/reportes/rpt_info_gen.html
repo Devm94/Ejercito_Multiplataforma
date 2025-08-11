@@ -31,65 +31,88 @@
       </div>
     </section>
 <script>
-        // Gráfico por departamento
-        const deptoCtx = document.getElementById('deptoChart').getContext('2d');
-        new Chart(deptoCtx, {
-            type: 'bar',
-            data: {
-                labels: {{ labels_depto|safe }},
-                datasets: [{
-                    label: 'Cantidad de CV por Departamento',
-                    data: {{ data_depto|safe }},
-                    backgroundColor: '#2ecc71',
-                    borderWidth: 1
-                }]
+    // Gráfico de cantidad de CV por departamento
+    const codigosDepto = {{ codigos_depto|safe }};
+    const deptoCtx = document.getElementById('deptoChart').getContext('2d');
+    const deptoChart = new Chart(deptoCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels_depto|safe }},
+            datasets: [{
+                label: 'Cantidad de CV por Departamento',
+                data: {{ data_depto|safe }},
+                backgroundColor: '#2ecc71',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y', // Barras horizontales
+            plugins: {
+                legend: { display: false }
             },
-            options: {
-                responsive: true,
-                indexAxis: 'y', // Barras horizontales
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true,
-                        ticks: { stepSize: 1 }
-                    }
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
                 }
             }
-        });
-        const ctx = document.getElementById('cargaElectoralChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: {{ labels_carga|safe }},
-                datasets: [{
-                    label: 'Carga Electoral',
-                    data: {{ data_carga|safe }},
-                    backgroundColor: '#e67e22'
-                }]
+        }
+    });
+
+    // Evento de clic en barra del gráfico de departamentos
+    document.getElementById('deptoChart').onclick = function(evt) {
+        const points = deptoChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+        if (points.length) {
+            const index = points[0].index;
+            const codigo = codigosDepto[index];
+             window.location.href = `/detalle-departamento/${codigo}/`;
+        }
+    };
+
+
+    // Gráfico de carga electoral
+    const ctx = document.getElementById('cargaElectoralChart').getContext('2d');
+    const depto_carga_Chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ labels_carga|safe }},
+            datasets: [{
+                label: 'Carga Electoral',
+                data: {{ data_carga|safe }},
+                backgroundColor: '#e67e22'
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',  // Horizontal
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
             },
-            options: {
-                responsive: true,
-                indexAxis: 'y',  // Horizontal
-                scales: {
-                    x: {
-                        beginAtZero: true
-                    }
+            plugins: {
+                legend: {
+                    display: false
                 },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return ' ' + context.raw.toLocaleString();
-                            }
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ' ' + context.raw.toLocaleString();
                         }
                     }
                 }
             }
-        });
-    </script>
+        }
+    });
+    document.getElementById('cargaElectoralChart').onclick = function(evt) {
+        const points1 = depto_carga_Chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+        if (points1.length) {
+            const index = points1[0].index;
+            const codigo = codigosDepto[index];
+             window.location.href = `/detalle-departamento/${codigo}/`;
+        }
+    };
+
+</script>
 {% endblock %}

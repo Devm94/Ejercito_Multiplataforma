@@ -5,9 +5,9 @@
       <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
     </li>
   </ul>
-  <ul class="navbar-nav ml-auto">
-    <li class="nav-item"></li>
-  </ul>
+<ul class="navbar-nav ml-auto">
+
+</ul>
 </nav>
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
   <div class="sidebar">
@@ -22,6 +22,12 @@
     <nav class="mt-2">
       <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
         <li class="nav-item">
+          <a href="{% url 'inicio_2' %}" class="nav-link">
+            <i class="nav-icon fas fa-landmark"></i>
+            <p>Dashboard</p>
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link">
             <i class="nav-icon fas fa-chart-pie"></i>
             <p>
@@ -30,12 +36,12 @@
             </p>
           </a>
           <ul class="nav nav-treeview">
-            <li class="nav-item">
+{% comment %}             <li class="nav-item">
               <a href="{% url 'rpt_info_situacion' %}" class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
                 <p>Situación Actual</p>
               </a>
-            </li>
+            </li> {% endcomment %}
             <li class="nav-item">
               <a href="{% url 'rpt_info_gen' %}"  class="nav-link">
                 <i class="far fa-circle nav-icon"></i>
@@ -53,13 +59,25 @@
         <li class="nav-item">
           <a href="{% url 'cv' %}" class="nav-link">
             <i class="nav-icon fas fa-landmark"></i>
-            <p>Centros de Votacion</p>
+            <p>Centros de Votación</p>
           </a>
         </li>
         <li class="nav-item">
           <a href="{% url 'admin_cv' %}" class="nav-link">
             <i class="nav-icon fas fa-landmark"></i>
             <p> Mis C.V.</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'admin_cde' %}" class="nav-link">
+            <i class="nav-icon fas fa-landmark"></i>
+            <p> CDE</p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'admin_cme' %}" class="nav-link">
+            <i class="nav-icon fas fa-landmark"></i>
+            <p> CME</p>
           </a>
         </li>
         <li class="nav-item">
@@ -91,12 +109,21 @@
             </li>
           </ul>
         </li>
-        <li class="nav-item">
+        {% comment %} <li class="nav-item">
           <a href="{% url 'registrar_manual' %}" class="nav-link">
             <i class="nav-icon fas fa-columns"></i>
             <p>Formulario</p>
           </a>
-        </li>
+        </li> {% endcomment %}
+        <li class="nav-item">
+  <form action="{% url 'cerrar_sesion' %}" method="post" class="nav-link p-0 m-0">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-block text-left text-white" style="background: none; border: none;">
+      <i class="nav-icon fas fa-sign-out-alt"></i>
+      <p>Cerrar sesión</p>
+    </button>
+  </form>
+</li>
       </ul>
     </nav>
   </div>

@@ -1,0 +1,849 @@
+{% extends '../core/base.html' %}
+{% load static %}
+{% block 'contenido' %}
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="{% static 'lib/adminlte/plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="{% static 'css/cde.css' %}">
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+<section class="content-header">
+</section>
+<section class="content">
+  {% csrf_token %}
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-4 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-header">
+            <h3 class="card-title">Rutas</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="graficoEstadosCDE" width="200" height="150" class="canvas-fijo" style="border: 2px solid #333; border-radius: 10px; padding: 10px;"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-header">
+            <h3 class="card-title">Geoposicionamiento</h3>
+          </div>
+          <div class="card-body d-flex flex-column justify-content-center align-items-center">
+            <img src="{% static 'img/map-marker.svg' %}" alt="Detalle" class="img-fluid mb-3" style="height: 150px;">
+            <a href="{% url 'mapa' %}" class="btn btn-primary">Situación Actual</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 d-flex">
+        <div class="card h-100 w-100">
+          <div class="card-header">
+            <h3 class="card-title">Carga Electoral</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="graficocargaCDE" width="200" height="150" class="canvas-fijo" style="border: 2px solid #333; border-radius: 10px; padding: 10px;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Listado de los Consejos Departamentales Electorales (CDE)</h3>
+            <div class="card-tools">
+            </div>
+          </div>
+          <div class="card-body">
+            <table id="example1" class="table table-bordered table-striped table-sm compact-table" style="font-size: 12px;">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Depto.</th>
+                        <th>Munic.</th>
+                        <th>Despliegue - Salida</th>
+                        <th>Despliegue - Llegada</th>
+                        <th>Redespliegue - Salida</th>
+                        <th>Redespliegue - Llegada</th>
+                        <th>Estado.</th>
+                        <th>Acciones.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                 {% for cde in cde %}
+                  <tr data-lat="{{ cde.latitud }}" data-lng="{{ cde.longitud }}" data-id="{{ cde.id }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{cde.cod_depto.descrip_corta}}</td>
+                    <td>{{cde.cod_munic.descrip_corta }} </td>
+                    <td>{{cde.hora_desp_salida_formateada }}</td>
+                    <td>{{cde.hora_desp_llegada_formateada}}</td>
+                    <td>{{cde.hora_redesp_salida_formateada}}</td>
+                    <td>{{cde.hora_redesp_llegada_formateada}}</td>
+                    <td>
+                      <select class="form-control form-control-sm estado-select" data-id="{{ cde.id }}">
+                        <option value="1" {% if cde.cod_estado_cde.descrip_corta == 'CLE' %}selected{% endif %}>CLE</option>
+                        <option value="2" {% if cde.cod_estado_cde.descrip_corta == 'En movimiento' %}selected{% endif %}>En movimiento</option>
+                        <option value="3" {% if cde.cod_estado_cde.descrip_corta == 'CDE' %}selected{% endif %}>CDE</option>
+                      </select>
+                    </td>
+                    <td>
+                      <div class="dropdown">
+                        <button class="btn btn-outline-primary btn-sm btn-block dropdown-toggle" type="button" id="accionesCentro{{ cde.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Acciones
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="accionesCentro{{ cde.id }}">
+                          <a class="dropdown-item text-success" href="#" data-toggle="modal" data-target="#modalpersonalcv" onclick="verPersonalCV({{ cde.id }})">
+                            Ver Personal
+                          </a>
+                          <a class="dropdown-item text-info" href="#" data-toggle="modal" data-target="#modalubicacioncv" onclick="mostrarMapaCentroEditable({{ cde.id }}, {{ cde.latitud }}, {{ cde.longitud }}, '{{ cde.cod_depto.descrip_corta|escapejs }}')">
+                            Ver Ubicación
+                          </a>
+                          <a class="dropdown-item text-dark" href="#" data-toggle="modal" data-target="#modalImagenCentro" onclick="mostrarModalImagenCentro({{ cde.id }})">
+                            Ver Imagen
+                          </a>
+                          <a class="dropdown-item text-warning" href="#" data-toggle="modal" data-target="#modalRegistroCDE" onclick="editarCDE({{ cde.id }})" >
+                            Editar 
+                          </a>
+                            <form action="{% url 'eliminar_cde' cde.id %}" method="post" onsubmit="return confirm('¿Estás seguro que deseas eliminar este centro de votación?');">
+                              {% csrf_token %}
+                              <button type="submit" class="dropdown-item text-danger" >
+                                Eliminar
+                              </button>
+                            </form>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+            </table>
+            <div class="mt-3 d-flex justify-content-between">
+              <div>
+                <a href="{% url 'exportar_cde_excel' %}" class="btn btn-primary btn-sm mr-2">
+                  <i class="fas fa-file-excel"></i> Exportar a Excel
+                </a>
+{% comment %}                 <a href="{% url 'guia_cv' %}" class="btn btn-danger btn-sm">
+                  <i class="fas fa-file-pdf"></i> Exportar a PDF
+                </a> {% endcomment %}
+              </div>
+              <div>
+                <a  data-toggle="modal" data-target="#modalRegistroCDE" id ="btnAgregarRegistro" class="btn btn-success btn-sm">
+                  <i class="fas fa-plus-circle"></i> Agregar Nuevo Registro
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="modalpersonalcv" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalpersonalcvLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header ">
+        <h5 class="modal-title">Personal empeñado en el CV</h5>
+        <button type="button" class="btn btn-close btn-secondary" data-dismiss="modal"  aria-label="Cerrar">Cerrar</button>
+      </div>
+      <div class="modal-body">
+        <div id="listaPersonalCV">
+          <div class="text-center">Cargando...</div>
+        </div>
+        <hr>
+        <h6 class="text-center" >Agregar nuevo personal</h6>
+        <form id="formAgregarPersonal" onsubmit="agregarPersonal(event)">
+          <div class="row g-2 mb-3 seguridad-item">
+            <div class="col-12 col-md-2">
+              <div class="form-group">
+                <input type="hidden" id="id_centro_hidden" name="centro_id">
+                <label for="grado" class="form-label">Grado/Rango</label>
+                <select class="form-control form-control-sm" id="grado" name="grado[]">
+                  <option value="">Seleccione</option>
+                  <option value="SOLD.">SOLD.</option>
+                  <option value="CABO">CABO</option>
+                  <option value="SGTO.RASO">SGTO.RASO</option>
+                  <option value="SGTO. 2NDO">SGTO. 2NDO</option>
+                  <option value="SGTO. 1RO">SGTO. 1RO</option>
+                  <option value="SGTO. MAYOR">SGTO. MAYOR</option>
+                  <option value="COMANDO I">COMANDO I</option>
+                  <option value="COMANDO II">COMANDO II</option>
+                  <option value="COMANDO III">COMANDO III</option>
+                  <option value="JEFE PRIMERO">JEFE PRIMERO</option>
+                  <option value="JEFE MAESTRO">JEFE MAESTRO</option>
+                  <option value="JEFE MAYOR">JEFE MAYOR</option>
+                  <option value="STTE">STTE</option>
+                  <option value="TTE">TTE</option>
+                  <option value="CAP">CPTN</option>
+                  <option value="MY">MY</option>
+                  <option value="TCNEL">TCNEL</option>
+                  <option value="CNEL">CNEL</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Nombre Completo</label>
+              <input type="text" class="form-control form-control-sm" name="nombre" required />
+            </div>
+            <div class="col-12 col-md-2">
+              <label class="form-label">Teléfono</label>
+              <input type="text" class="form-control form-control-sm telefono-mask" name="telefono" placeholder="####-####" required />
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Foto</label>
+              <input type="file" class="form-control form-control-sm" name="foto" />
+            </div>
+          </div>
+          <div class="mb-3 text-center">
+            <button type="submit" id="add-seguridad" class="btn btn-outline-secondary btn-sm">+ Agregar Personal</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalubicacioncv" class="modal fade"  tabindex="-1" role="dialog" aria-labelledby="modalDetalleLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="modalDetalleLabel">Ubicacion del Centro de Votación</h5>
+        <button type="button" class="btn btn-close btn-secondary" data-dismiss="modal"  aria-label="Cerrar">Cerrar</button>
+      </div>
+      <div class="modal-body">
+        <div id="mapaCentro" style="height: 400px; width: 100%;"></div>
+        <input type="hidden" id="ubicacionCentroId">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="guardarUbicacionCentro()">Guardar ubicación</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalImagenCentro" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalpersonalcvLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Imagen del Centro de Votación</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="imgCentroPreview" src="/static/img/no-image.png" alt="Imagen del centro" class="img-fluid rounded mb-3" style="max-height: 300px;">  
+        <form id="formImagenCentro">
+          <input type="hidden" name="centro_id" id="img_centro_id">
+          <div class="form-group">
+            <label for="nueva_foto">Seleccionar nueva imagen</label>
+            <input type="file" class="form-control-file" name="nueva_foto" id="nueva_foto" accept="image/*" required>
+          </div>
+          <button type="submit" class="btn btn-primary mt-2">Guardar Imagen</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="modalRegistroCDE" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalRegistroCDELabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Registrar Nuevo CDE</h5>
+        <button type="button" class="btn btn-close btn-light" data-dismiss="modal" aria-label="Cerrar">Cerrar</button>
+      </div>
+      <div class="modal-body">
+        <form id="formRegistroCDE" method="POST" enctype="multipart/form-data" onsubmit="registrarCDE(event)">
+          {% csrf_token %}
+          <input type="hidden" name="id_cde" id="id_cde">
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+            <label>Departamento</label>
+            <select  class="form-control form-control-sm" name="departamento" id="departamento" data-url="{% url 'load_municipios' %}" required>
+              <option value="">Seleccione</option>
+              {% for d in departamentos %}
+                <option value="{{ d.id }}">{{ d.descrip_corta }}</option>
+              {% endfor %}
+            </select>
+
+            </div>
+            <div class="col-md-6">
+            <label>Municipio</label>
+            <select  class="form-control form-control-sm" name="municipio" id="municipio" data-url="{% url 'load_cv' %}" required>
+              <option value="">Seleccione</option>
+            </select>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label>Procedencia</label>
+              <select name="procedencia" class="form-control form-control-sm" required>
+                <option value="">Seleccione</option>
+                {% for p in procedencias %}
+                  <option value="{{ p.id }}">{{ p.descrip_corta }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label>Carga Electoral</label>
+              <input type="number" name="carga_electoral" id="carga_electoral"
+              class="form-control form-control-sm" placeholder="Ingrese la carga electoral">
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label>Hora Despliegue - Salida</label>
+              <input type="datetime-local" name="hora_desp_salida" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-6">
+              <label>Hora Despliegue - Llegada</label>
+              <input type="datetime-local" name="hora_desp_llegada" class="form-control form-control-sm" />
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label>Hora Redespliegue - Salida</label>
+              <input type="datetime-local" name="hora_redesp_salida" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-6">
+              <label>Hora Redespliegue - Llegada</label>
+              <input type="datetime-local" name="hora_redesp_llegada" class="form-control form-control-sm" />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label>Observaciones</label>
+            <textarea name="obs" class="form-control form-control-sm" rows="2"></textarea>
+          </div>
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-save"></i> Guardar Registro
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <small class="text-muted">Complete todos los campos requeridos antes de guardar.</small>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/jquery-3.6.0.min.js' %}"></script>
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'lib/adminlte/plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script src="{% static 'js/util_input.js' %}"></script>
+<script src="{% static 'js/Depto_Munic.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+<script>
+  $('.telefono-mask').mask('0000-0000')
+function verPersonalCV(centroId) {
+  $('#id_centro_hidden').val(centroId); // Para el formulario
+  $('#listaPersonalCV').html('<div class="text-center">Cargando...</div>');
+  document.getElementById("formAgregarPersonal").reset();
+  fetch(`/cde/${centroId}/personal/`)
+  .then(response => response.json())
+  .then(data => {
+    if (data.length === 0) {
+      $('#listaPersonalCV').html('<div class="text-center text-muted">No hay personal asignado.</div>');
+      return;
+    }
+    const html = `
+       <table class="table table-sm table-bordered align-middle text-center">
+       <thead class="thead-light">
+       <tr>
+        <th>Foto</th>
+        <th>Nombre</th>
+        <th>Teléfono</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${data.map(p => `
+        <tr>
+          <td class="align-middle">
+            <img src="${p.img || '/static/img/default-user.png'}" width="60" height="60" class="img-thumbnail mr-2"">
+          </td>
+          <td class="align-middle">${p.nom}</td>
+          <td class="align-middle">${p.num}</td>
+          <td class="text-center align-middle" >
+            <button class="btn btn-danger btn-sm" onclick="eliminarPersonal(${p.id})">
+              <i class="fas fa-trash-alt"></i> Eliminar
+            </button>
+          </td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+  `;
+      $('#listaPersonalCV').html(html);
+    })
+    .catch(() => {
+      $('#listaPersonalCV').html('<div class="text-danger text-center">Error al cargar los datos.</div>');
+    });
+}
+
+function agregarPersonal(e) {
+  e.preventDefault();
+  const form = document.getElementById('formAgregarPersonal');
+  const formData = new FormData();
+  const nom = form.grado.value.trim() + " " + form.nombre.value.trim();
+  formData.append('centro_id', form.centro_id.value);
+  formData.append('nombre', nom);
+  formData.append('telefono', form.telefono.value);
+  formData.append('foto', form.foto.files[0]);
+
+  fetch('/cde/agregar_personal/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: formData
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Error al guardar');
+       return response.json();
+    })
+    .then(res => {
+      alert('Personal agregado correctamente');
+      verPersonalCV(form.centro_id.value);  // Recargar la lista
+      form.reset();
+    })
+    .catch(() => alert('Hubo un error al guardar el personal'));
+}
+
+function eliminarPersonal(id) {
+  if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) return;
+
+  fetch(`/centro/eliminar_personal/${id}/`, {
+    method: 'DELETE',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error("Error al eliminar");
+    return res.json();
+  })
+  .then(data => {
+    alert("Personal eliminado correctamente");
+    // Recarga la lista del centro actual
+    const centroId = document.getElementById("id_centro_hidden").value;
+    verPersonalCV(centroId);
+  })
+  .catch(err => {
+    console.error(err);
+    alert("Error al eliminar el personal");
+  });
+}
+
+function mostrarModalImagenCentro(centroId) {
+  document.getElementById('img_centro_id').value = centroId;
+  document.getElementById('nueva_foto').value = "";
+
+  fetch(`/cde/${centroId}/foto/`)
+    .then(res => res.json())
+    .then(data => {
+      const img = data.foto ? data.foto : '/static/img/Imagen_no_disponible.svg.png';
+      document.getElementById('imgCentroPreview').src = img;
+    })
+    .catch(() => {
+      document.getElementById('imgCentroPreview').src = '/static/img/no-image.png';
+    });
+}
+
+document.getElementById('formImagenCentro').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData();
+  formData.append('centro_id', form.centro_id.value);
+  formData.append('nueva_foto', form.nueva_foto.files[0]);
+
+  fetch('/cde/guardar_foto/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: formData
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert('Imagen guardada correctamente');
+      mostrarModalImagenCentro(form.centro_id.value);
+      form.reset();
+
+    })
+    .catch(() => alert('Error al guardar la imagen'));
+});
+
+
+  let mapaCentro;
+  let marcador;
+  let nuevaLatLng;
+  const capaOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'});
+
+  const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
+    'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri',
+    maxZoom: 20});
+
+  const esriLabels = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/' +
+    'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Labels &copy; Esri',
+    pane: 'overlayPane'});
+
+  function mostrarMapaCentroEditable(centroId, lat, lng, nombreCentro) {
+    document.getElementById("ubicacionCentroId").value = centroId;
+    setTimeout(() => {
+      if (mapaCentro) {
+        mapaCentro.remove();
+      }
+mapaCentro = L.map("mapaCentro", {
+  center: [lat, lng],
+  zoom: 16,
+  layers: [capaOSM],
+      minZoom: 2,  // Zoom mínimo permitido
+    maxZoom: 18  // Zoom máximo permitido  // capa base inicial, puede ser capaOSM o esriSat
+});
+      marcador = L.marker([lat, lng], {
+        draggable: true,
+      })
+        .addTo(mapaCentro)
+        .bindPopup(nombreCentro)
+        .openPopup();
+      marcador.on("dragend", function (e) {
+        nuevaLatLng = e.target.getLatLng();
+      });
+L.control.layers(
+  {
+    "OpenStreetMap": capaOSM,
+    "Esri Satélite": L.layerGroup([esriSat, esriLabels])
+  },
+  {},
+  { collapsed: false }
+).addTo(mapaCentro);
+      nuevaLatLng = { lat: lat, lng: lng };
+// inicial
+    }, 300);
+  }
+
+function guardarUbicacionCentro() {
+  const centroId = document.getElementById('ubicacionCentroId').value;
+
+  fetch('/cde/guardar_ubicacion/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      centro_id: centroId,
+      lat: nuevaLatLng.lat,
+      lng: nuevaLatLng.lng
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        alert('Ubicación actualizada correctamente');
+      } else {
+        alert('Error al guardar');
+      }
+    })
+    .catch(() => alert('Error al guardar'));
+}
+
+document.querySelectorAll('.estado-select').forEach(select => {
+  select.addEventListener('change', function () {
+
+    const centroId = this.dataset.id;
+    const nuevoEstado = this.value;
+    fetch(`/cde/actualizar_estado/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ id: centroId, estado: nuevoEstado })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        console.log("Estado actualizado");
+        location.reload();
+      } else {
+        alert("Error al actualizar el estado");
+      }
+    })
+    .catch(() => alert("Error en la conexión"));
+  });
+});
+function registrarCDE(event) {
+  event.preventDefault();
+  document.getElementById('municipio').disabled = false;
+  document.getElementById('departamento').disabled = false;
+  const form = document.getElementById('formRegistroCDE');
+  const formData = new FormData(form);
+
+  fetch("{% url 'registrar_cde' %}", {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+      $('#modalRegistroCDE').modal('hide');
+      form.reset();
+      location.reload(); // Recargar tabla
+    } else {
+      alert('Error al guardar: ' + (data.error || 'Error desconocido'));
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Error al guardar el CDE.');
+  });
+}
+
+function editarCDE(id) {
+  fetch(`/cde/obtener/${id}/`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('id_cde').value = data.id;
+      document.querySelector('[name="procedencia"]').value = data.procedencia;
+      document.querySelector('[name="carga_electoral"]').value = data.carga_electoral;
+      document.querySelector('[name="hora_desp_salida"]').value = data.hora_desp_salida;
+      document.querySelector('[name="hora_desp_llegada"]').value = data.hora_desp_llegada;
+      document.querySelector('[name="hora_redesp_salida"]').value = data.hora_redesp_salida;
+      document.querySelector('[name="hora_redesp_llegada"]').value = data.hora_redesp_llegada;
+      document.querySelector('[name="obs"]').value = data.obs;
+
+      // Primero asignas el departamento
+      document.getElementById('departamento').value = data.cod_depto;
+      const deptoSelect = document.getElementById('departamento');
+      deptoSelect.value = data.cod_depto;
+      deptoSelect.disabled = true; // 🔒 Bloquear campo
+      // Luego llamas a cargarMunicipios manualmente con el municipio preseleccionado
+      cargarMunicipios(data.cod_depto, data.cod_munic);
+      document.getElementById('municipio').disabled = true;
+    });
+}
+function cargarMunicipios(depto_id, cod_munic_selected = null) {
+  const url = $('#departamento').data('url');
+
+  $.ajax({
+    url: url,
+    data: { depto_id: depto_id },
+    success: function (data) {
+      $('#municipio').empty();
+      $('#municipio').append('<option value="">Seleccione un municipio</option>');
+
+      $.each(data, function (key, value) {
+        $('#municipio').append(`<option value="${value.id}">${value.descrip_corta}</option>`);
+      });
+
+      if (cod_munic_selected) {
+        $('#municipio').val(cod_munic_selected);
+      }
+
+    }
+  });
+}
+$('#btnAgregarRegistro').click(function () {
+  const form = document.getElementById('formRegistroCDE');
+  form.reset();
+  $('#municipio').html('<option value="">Seleccione...</option>').trigger('change');
+ 
+});
+const coloresEstadosCDE = {
+  'CDE': '#28a745',     // Verde
+  'CLE': '#355cdcff',   // Rojo
+  'En movimiento': '#ffc107',  // Amarillo
+};
+const colores1 = {{ labels|safe }}.map(label => coloresEstadosCDE[label] || '#cccccc');
+const ctx12 = document.getElementById('graficoEstadosCDE').getContext('2d');
+const grafico = new Chart(ctx12, {
+  type: 'doughnut',
+  data: {
+    labels: {{ labels|safe }},
+    datasets: [{
+      data: {{ counts|safe }},
+      backgroundColor: colores1,
+      borderColor: '#ffffff',
+      borderWidth: 2,
+      hoverOffset: 10
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          boxWidth: 15,
+          padding: 15,
+          color: '#333',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: '#333',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        padding: 10,
+        cornerRadius: 6
+      },
+      title: {
+        display: true,
+        text: 'Situación Actual de las Rutas',
+        color: '#333',
+        font: {
+          size: 16,
+          weight: 'bold'
+        },
+        padding: {
+          top: 10,
+          bottom: 20
+        }
+      },
+      datalabels: {
+        color: '#000',
+        anchor: 'end',
+        align: 'end',
+        formatter: function(value) {
+          return value;
+        },
+        font: {
+          weight: 'bold',
+          size: 14
+        }
+      }
+    },
+    animation: {
+      animateRotate: true,
+      animateScale: true
+    }
+  },
+  plugins: [ChartDataLabels] // Asegúrate de incluir este plugin en tu HTML
+});
+
+const ctx1 = document.getElementById('graficocargaCDE').getContext('2d');
+const colores2 = {{ labels1|safe }}.map(label => coloresEstadosCDE[label] || '#cccccc');
+const graficos1 = new Chart(ctx1, {
+  type: 'doughnut',
+  data: {
+    labels: {{ labels1|safe }},
+    datasets: [{
+      data: {{ datas1|safe }},
+      backgroundColor: colores2,
+      borderColor: '#ffffff',
+      borderWidth: 2,
+      hoverOffset: 10
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          boxWidth: 15,
+          padding: 15,
+          color: '#333',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        }
+      },
+      tooltip: {
+        backgroundColor: '#333',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        padding: 10,
+        cornerRadius: 6
+      },
+      title: {
+        display: true,
+        text: 'Situacion Actual de la Carga Electoral',
+        color: '#333',
+        font: {
+          size: 16,
+          weight: 'bold'
+        },
+        padding: {
+          top: 10,
+          bottom: 20
+        }
+      },
+      datalabels: {
+        color: '#333',
+        anchor: 'end',           // Ancla la etiqueta fuera del segmento
+        align: 'end',            // Alinea el texto fuera del borde
+        offset: 10,              // Separación del borde del segmento
+        formatter: (value, ctx1) => {
+          let total = ctx1.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+          let percentage = (value / total * 100).toFixed(1);
+          return percentage + '%';
+        },
+        font: {
+          weight: 'bold',
+          size: 14
+        }
+      }
+    },
+    animation: {
+      animateRotate: true,
+      animateScale: true
+    }
+  },
+  plugins: [ChartDataLabels]
+});
+  $('#example1').DataTable({
+       "language": {
+            "decimal":        "",
+            "emptyTable":     "No hay datos disponibles en la tabla",
+            "info":           "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+            "infoEmpty":      "Mostrando 0 a 0 de 0 entradas",
+            "infoFiltered":   "(filtrado de _MAX_ entradas totales)",
+            "infoPostFix":    "",
+            "thousands":      ",",
+            "lengthMenu":     "Mostrar _MENU_ entradas",
+            "loadingRecords": "Cargando...",
+            "processing":     "Procesando...",
+            "search":         "Buscar:",
+            "zeroRecords":    "No se encontraron registros coincidentes",
+            "paginate": {
+                "first":      "Primero",
+                "last":       "Último",
+                "next":       "Siguiente",
+                "previous":   "Anterior"
+            },
+            "aria": {
+                "sortAscending":  ": activar para ordenar la columna ascendente",
+                "sortDescending": ": activar para ordenar la columna descendente"
+            }
+        }
+    });
+
+</script>
+{% endblock %}
